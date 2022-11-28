@@ -61,6 +61,8 @@ endif()
 
 # Boost.Beast is header only
 find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
+# threading library is required, i.e. on WSL Ubuntu missing pthread symbols
+find_package(Threads REQUIRED)
 
 # include dir and tool name
 set(PDXKA_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
