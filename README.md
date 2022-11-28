@@ -1,4 +1,3 @@
 # xkcd-alt
 
-A CLI tool to get the daily [XKCD](https://xkcd.com/) alt text one-liner.
-
+A CLI tool for printing the daily [XKCD](https://xkcd.com/) alt text one-liner.
