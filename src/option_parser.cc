@@ -19,24 +19,6 @@
 namespace pdxka {
 
 /**
- * Given the program name, return the program's description.
- *
- * The program name will only display its base name, i.e. without directories.
- *
- * @param progname `const char*` `NULL`-terminated program name
- */
-std::string program_description(const char* progname)
-{
-  std::filesystem::path progpath{progname};
-  return
-    "Usage: " + progpath.filename().string() + " [OPTIONS]"
-    "\n\n"
-    "Prints the alt text one-liner for today's XKCD comic."
-    "\n\n"
-    "Options";
-}
-
-/**
  * Parse command-line options for this application.
  *
  * Closely follows https://theboostcpplibraries.com/boost.program_options.
@@ -44,7 +26,7 @@ std::string program_description(const char* progname)
  * @param argc `int` argument count
  * @param argv `char**` argument vector
  */
-option_parse_results parse_options(int argc, char** argv)
+option_parse_result parse_options(int argc, char** argv)
 {
   // convenience namespace alias
   namespace po = boost::program_options;
