@@ -22,41 +22,13 @@ project(
     LANGUAGES CXX
 )
 
-option(USE_BEAST "Use Boost.Beast to make HTTP request" OFF)
-option(USE_CURL "Use libcurl to make HTTP request" OFF)
-
+# default build type is Debug
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-# USE_BEAST and USE_CURL are mutually exclusive, but USE_BEAST should be set to
-# ON by default if neither are specified when building
-if(NOT USE_BEAST AND NOT USE_CURL)
-    set(USE_BEAST ON CACHE BOOL "" FORCE)
-elseif(USE_BEAST AND USE_CURL)
-    message(FATAL_ERROR "USE_BEAST and USE_CURL are mutually exclusive")
-endif()
-
-# update preprocessor defines
-if(USE_BEAST)
-    add_compile_definitions(PDXKA_USE_BEAST)
-elseif(USE_CURL)
-    add_compile_definitions(PDXKA_USE_CURL)
-# should never hit this
-else()
-    message(FATAL_ERROR "neither USE_BEAST nor USE_CURL defined!")
-endif()
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if(USE_CURL)
-    find_package(CURL 7.68 REQUIRED)
-    set(PDXKA_HTTP_LIBRARY CURL::libcurl)
-else()
-    # target for Boost headers, won't actually link to anything
-    set(PDXKA_HTTP_LIBRARY Boost::boost)
-endif()
 
 # compiler-specific options
 if(MSVC)
@@ -72,6 +44,19 @@ else()
     else()
         add_compile_options(-O0 -ggdb)
     endif()
+endif()
+
+# option to use cURL instead of Boost.Beast for HTTP request
+if(DEFINED USE_CURL)
+    find_package(CURL 7.68 REQUIRED)
+    message(STATUS "Using cURL for HTTP request")
+    add_compile_definitions(PDXKA_USE_CURL)
+    include_directories(SYSTEM ${CURL_INCLUDE_DIRS})
+    set(PDXKA_HTTP_LIBRARY CURL::libcurl)
+else()
+    message(STATUS "Using Boost.Beast for HTTP request")
+    # target for Boost headers, won't actually link to anything
+    set(PDXKA_HTTP_LIBRARY Boost::boost)
 endif()
 
 # Boost.Beast is header only
