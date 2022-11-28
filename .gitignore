@@ -1,0 +1,10 @@
+# ignore build artifacts and build directories
+*.dll
+*.exe
+*.lib
+*.pdb
+*.so
+build
+build_windows
+# ignore VS Code settings
+.vscode
