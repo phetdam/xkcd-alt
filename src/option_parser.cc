@@ -62,7 +62,6 @@ option_parse_result parse_options(int argc, char** argv)
   }
   // non-STL (ex. platform-specific) exceptions
   catch (...) {
-    std::exception_ptr exp = std::current_exception();
     std::cerr << "error: unknown exception: " <<
       boost::current_exception_diagnostic_information() << std::endl;
     exit_code = EXIT_FAILURE + 2;

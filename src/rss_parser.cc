@@ -7,108 +7,146 @@
 
 #include <pdxka/rss_parser.h>
 
+#include <cstdlib>
+#include <iostream>
 #include <sstream>
 #include <string>
 
-#ifndef PDXKA_USE_CURL
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#endif  // PDXKA_USE_CURL
+#include <boost/exception/diagnostic_information.hpp>
 #include <boost/property_tree/ptree.hpp>
-#ifdef PDXKA_USE_CURL
+
 #include <curl/curl.h>
-#endif  // PDXKA_USE_CURL
 
 namespace pdxka {
 
-// XKCD RSS feed URL
-const std::string xkcd_rss_url = "https://xkcd.com/rss.xml";
+// current XKCD RSS feed URL
+const std::string rss_url = "https://xkcd.com/rss.xml";
 
-// default HTTP port
-const unsigned int default_port = 8070;
+namespace detail {
 
 /**
-   * Populate `rss_item` data from Boost `ptree` containing XKCD RSS item data.
-   *
-   * Returns `item` pointer to allow method chaining.
-   *
-   * @param tree `const ptree&` tree containing XKCD TSS item data
-   * @param item `rss_item*` pointer to RSS item to populate
-   */
+ * cURL callback function used to write received data.
+ *
+ * Returns the number of characters written, where if the returned value is
+ * less than `n_items`, cURL will interpret this as an error and halt.
+ *
+ * @param incoming `char*` buffer of data read by cURL, not `NULL`-terminated
+ * @param item_size `std::size_t` size of char items, always 1 (unused)
+ * @param n_items `std::size_t` number of chars in buffer to write
+ * @param stream `void*` address of a `std::stringstream` to put chars in
+ */
+std::size_t curl_writer(
+  char* incoming,
+  std::size_t /* item_size */,
+  std::size_t n_items,
+  void* stream) noexcept
+{
+  // error if either incoming buffer or stream are NULL
+  if (!incoming || !stream)
+    return 0;
+  // counter/number of items read before exception
+  std::size_t n = 0;
+  // since incoming is not NULL-terminated, just put each char into stream. C
+  // code doesn't know how to handle exceptions, so wrap in try/catch
+  try {
+    std::stringstream* sstream = static_cast<std::stringstream*>(stream);
+    for (; n < n_items; n++) sstream->put(incoming[n]);
+  }
+  catch (...) {
+    std::cerr << "curl_writer: " <<
+      boost::current_exception_diagnostic_information() << std::endl;
+    return n;
+  }
+  return n_items;
+}
+
+}  // namespace detail
+
+/**
+ * Get the latest XKCD RSS XML.
+ *
+ * @param url `const std::string&` URL used for XKCD RSS, i.e. `rss_url`
+ * @param options `curl_options` cURL options struct
+ */
+curl_result get_rss(const std::string& url, curl_options options)
+{
+  // cURL session handle and global error status
+  CURL *handle;
+  CURLcode status;
+  // reason the cURL request has errored out + stream to hold response body
+  std::string reason;
+  std::stringstream stream;
+  // global cURL session init
+  status = curl_global_init(CURL_GLOBAL_DEFAULT);
+  PDXKA_CURL_ERR_HANDLER(status, reason, "Global init error", clean_global);
+  // if good, init the cURL "easy" session
+  handle = curl_easy_init();
+  // on error, clean up and exit
+  if (!handle) {
+    reason = "curl_easy_init errored";
+    goto clean_easy;
+  }
+  // set cURL error buffer
+  char errbuf[CURL_ERROR_SIZE];
+  status = curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, &errbuf);
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // set URL to make GET request to
+  status = curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // set cURL callback writer function
+  status = curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, detail::curl_writer);
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // set cURL callback writer function's write target
+  status = curl_easy_setopt(handle, CURLOPT_WRITEDATA, &stream);
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // set cURL options
+  if (options.verbose) {
+    status = curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+    PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  }
+  if (!options.no_verify_peer) {
+    status = curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 1L);
+    PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  }
+  if (!options.no_verify_host) {
+    status = curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 1L);
+    PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  }
+  // perform GET request
+  status = curl_easy_perform(handle);
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // clean up both "easy" and global sessions
+clean_easy:
+  curl_easy_cleanup(handle);
+clean_global:
+  curl_global_cleanup();
+  return {status, reason, request_type::GET, stream.str()};
+}
+
+/**
+ * Populate `rss_item` data from Boost `ptree` containing XKCD RSS item data.
+ *
+ * Returns `item` pointer to allow method chaining.
+ *
+ * @param tree `const ptree&` tree containing XKCD TSS item data
+ * @param item `rss_item*` pointer to RSS item to populate
+ */
 rss_item* rss_item::from_tree(
   const boost::property_tree::ptree& tree, rss_item* item)
 {
   assert(item);
   // non-img data are directly accessible (can throw)
-  item->title_ = tree.get<std::string>("item.title");
-  item->link_ = tree.get<std::string>("item.link");
-  item->pub_date_ = tree.get<std::string>("item.pubDate");
-  item->guid_ = tree.get<std::string>("item.guid");
+  item->title_ = tree.get<std::string>("title");
+  item->link_ = tree.get<std::string>("link");
+  item->pub_date_ = tree.get<std::string>("pubDate");
+  item->guid_ = tree.get<std::string>("guid");
   // img data is all from <description> tag, but we can create a property tree
   // from the img data XML text to get src, title, alt conveniently
-  const auto desc_tree{parse_rss(tree.get<std::string>("item.description"))};
-  item->img_src_ = desc_tree.get<std::string>("img.xmlattr.src");
-  item->img_title_ = desc_tree.get<std::string>("img.xmlattr.title");
-  item->img_alt_ = desc_tree.get<std::string>("img.xmlattr.alt");
+  const auto desc_tree{parse_rss(tree.get<std::string>("description"))};
+  item->img_src_ = desc_tree.get<std::string>("img.<xmlattr>.src");
+  item->img_title_ = desc_tree.get<std::string>("img.<xmlattr>.title");
+  item->img_alt_ = desc_tree.get<std::string>("img.<xmlattr>.alt");
   return item;
-}
-
-/**
- * Get the latest XKCD RSS XML and return it as a `std::string`.
- *
- * Implementation uses Boost.Beast by default unless `PDXKA_USE_CURL` was
- * defined during compilation, in which case cURL is used instead.
- *
- * Throws an exception if any errors are encountered.
- *
- * @param rss_url `const std::string&` URL used for XKCD RSS. If not specified,
- *    the default URL used is given by `xkcd_rss_url`.
- */
-std::string get_rss(const std::string& rss_url, unsigned int port)
-{
-#ifdef PDXKA_USE_CURL
-#error "pdxka does not yet support using cURL, please use Boost.Beast instead"
-#else
-  // the following is closely copied from the Boost.Beast simple HTTP client
-  // example, as it is not well understood by me. one can argue that using
-  // Boost.Beast for a HTTP GET request is analagous to using a sledgehammer to
-  // drive in a nail; it is better used by library writers.
-  namespace beast = boost::beast;     // from <boost/beast.hpp>
-  namespace http = beast::http;       // from <boost/beast/http.hpp>
-  namespace net = boost::asio;        // from <boost/asio.hpp>
-  using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
-  // io_context is required for all I/O
-  net::io_context io_context;
-  // I/O objects: first resolves URLs, second is for data stream
-  tcp::resolver resolver(io_context);
-  beast::tcp_stream stream(io_context);
-  // look up the XKCD RSS URL
-  const auto urls{resolver.resolve(rss_url, std::to_string(port).c_str())};
-  // make the connection on the IP address we get from a lookup
-  stream.connect(urls);
-  // set up HTTP GET request message from URL root (using HTTP 1.1 protocol)
-  http::request<http::string_body> req{http::verb::get, "/", 11};
-  req.set(http::field::host, rss_url);
-  req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-  // send the HTTP request to the remote host
-  http::write(stream, req);
-  // container to hold the response + required reading buffer
-  http::response<http::dynamic_body> response;
-  beast::flat_buffer buffer;
-  // receive the HTTP response and write the buffer data to a string
-  http::read(stream, buffer, response);
-  std::string rss = beast::buffers_to_string(buffer.data());
-  // gracefully close the socket
-  beast::error_code errcode;
-  stream.socket().shutdown(tcp::socket::shutdown_both, errcode);
-  // sometimes errcode is not_connected, so ignore it. return if no error
-  if (errcode && errcode != beast::errc::not_connected)
-    throw beast::system_error(errcode);
-  return rss;
-#endif  // PDXKA_USE_CURL
 }
 
 /**

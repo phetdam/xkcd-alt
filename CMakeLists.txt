@@ -46,23 +46,9 @@ else()
     endif()
 endif()
 
-# option to use cURL instead of Boost.Beast for HTTP request
-if(DEFINED USE_CURL)
-    find_package(CURL 7.68 REQUIRED)
-    message(STATUS "Using cURL for HTTP request")
-    add_compile_definitions(PDXKA_USE_CURL)
-    include_directories(SYSTEM ${CURL_INCLUDE_DIRS})
-    set(PDXKA_HTTP_LIBRARY CURL::libcurl)
-else()
-    message(STATUS "Using Boost.Beast for HTTP request")
-    # target for Boost headers, won't actually link to anything
-    set(PDXKA_HTTP_LIBRARY Boost::boost)
-endif()
-
-# Boost.Beast is header only
+find_package(CURL 7.68 REQUIRED)
+# program_options is not header-only
 find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
-# threading library is required, i.e. on WSL Ubuntu missing pthread symbols
-find_package(Threads REQUIRED)
 
 # include dir and tool name
 set(PDXKA_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -72,6 +58,7 @@ set(PDXKA_PROGNAME xkcd-alt)
 include_directories(
     ${PDXKA_INCLUDE}
     SYSTEM ${Boost_INCLUDE_DIRS}
+    SYSTEM ${CURL_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)

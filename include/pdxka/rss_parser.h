@@ -17,7 +17,116 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
+#include <curl/curl.h>
+
+/**
+ * Macro evaluating to true if a `CURLcode` is not `CURLE_OK`.
+ *
+ * @param status `CURLcode` cURL status code
+ */
+#define PDXKA_CURL_NOT_OK(status) if ((status) != CURLE_OK)
+
+/**
+ * Macro error handler for cURL when a `CURLcode` is not `CURLE_OK`.
+ *
+ * The value of `errbuf` is assigned to `reason` and the code will goto the
+ * `cleanup` label to execute whatever cleanup code is necessary.
+ *
+ * @param status `CURLcode` cURL status code
+ * @param reason `std::string` to write cURL error buffer to
+ * @param errbuf `char*` or `char[]` cURL error buffer ending in `NULL`
+ * @param cleanup `goto` label to jump to for cleanup
+ */
+#define PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, cleanup) \
+  do { \
+    PDXKA_CURL_NOT_OK(status)  { \
+      reason = errbuf; \
+      goto cleanup; \
+    } \
+  } \
+  while(0)
+
 namespace pdxka {
+
+extern const std::string rss_url;
+
+/**
+ * Immutable POD class holding options for get_rss.
+ *
+ * @param verbose `bool` to make cURL operate verbosely if `true`
+ * @param no_verify_peer `bool` to make cURL not verify server's cert if `true`
+ * @param no_verify_host `bool` to make cURL not verify server's id if `true`
+ */
+struct curl_options {
+  const bool verbose;
+  const bool no_verify_peer;
+  const bool no_verify_host;
+};
+
+/**
+ * Enum class for the `curl_result` HTTP[S] request type.
+ */
+enum class request_type {
+  GET,
+  POST
+};
+
+/**
+ * Immutable POD class holding cURL HTTP[S] result.
+ *
+ * @param status `CURLcode` cURL status code
+ * @param reason `std::string` holding contents of last cURL error buffer
+ * @param request `request_type` HTTP[S] request we got result for
+ * @param payload `std::string` HTTP[S] response body
+ */
+struct curl_result {
+  const CURLcode status;
+  const std::string reason;
+  const request_type request;
+  const std::string payload;
+};
+
+/**
+ * Return Boost `ptree` holding the latest XKCD RSS XML.
+ *
+ * @param xml `const std::string&` raw XKCD RSS XML
+ *
+ * @throws `boost::property_tree::xml_parser::xml_parser_error` if parse fails
+ */
+inline boost::property_tree::ptree parse_rss(const std::string& xml)
+{
+  namespace pt = boost::property_tree;
+  // property tree we will use to store RSS tree results in
+  pt::ptree tree;
+  // create stream from rss_string + parse XML (drop comments)
+  std::stringstream stream(xml, std::ios_base::in);
+  pt::read_xml(stream, tree, pt::xml_parser::no_comments);
+  return tree;
+}
+
+namespace detail {
+
+std::size_t curl_writer(
+  char* incoming,
+  std::size_t /* item_size */,
+  std::size_t n_items,
+  void* stream) noexcept;
+
+}  // namespace detail
+
+curl_result get_rss(const std::string& url, curl_options options = {});
+
+/**
+ * Get the latest XKCD RSS XML.
+ *
+ * Uses `rss_url` as the URL to the XKCD RSS XML.
+ *
+ * @param options `curl_options` cURL options struct
+ */
+inline curl_result get_rss(curl_options options = {})
+{
+  return get_rss(rss_url, options);
+}
 
 /**
  * Class to represent an XKCD RSS XML item.
@@ -89,36 +198,6 @@ private:
 };
 
 using rss_item_vector = std::vector<rss_item>;
-
-extern const std::string xkcd_rss_url;
-extern const unsigned int default_port;
-
-/**
- * Return Boost `ptree` holding the latest XKCD RSS XML.
- *
- * @param rss_string `const std::string&` raw XKCD RSS XML
- *
- * @throws `boost::property_tree::xml_parser::xml_parser_error` if parse fails
- */
-inline boost::property_tree::ptree parse_rss(const std::string& rss_string)
-{
-  namespace pt = boost::property_tree;
-  // property tree we will use to store RSS tree results in
-  pt::ptree rss_tree;
-  // create stream from rss_string + parse XML (drop comments)
-  std::stringstream rss_stream(rss_string, std::ios_base::in);
-  pt::read_xml(rss_stream, rss_tree, pt::xml_parser::no_comments);
-  return rss_tree;
-}
-
-std::string get_rss(const std::string& rss_url, unsigned int port);
-
-inline std::string get_rss(const std::string& rss_url)
-{
-  return get_rss(rss_url, default_port);
-}
-
-inline std::string get_rss() { return get_rss(xkcd_rss_url); }
 
 rss_item_vector to_item_vector(const boost::property_tree::ptree& rss_tree);
 
