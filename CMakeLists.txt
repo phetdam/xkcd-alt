@@ -4,11 +4,10 @@ cmake_minimum_required(VERSION 3.21)
 # How to build:
 #
 # *nix:
-#   cmake -S . -B build [-DUSE_CURL=1] [-DUSE_BEAST=1] && cmake --build build
+#   cmake -S . -B build && cmake --build build
 #
 # Windows:
-#   cmake -S . -B build_windows -G Ninja [-DUSE_CURL=1] [-DUSE_BEAST=1] && ^
-#   cmake --build build_windows
+#   cmake -S . -B build_windows -G Ninja && cmake --build build_windows
 #
 # Note on Windows you should use the correct Developer Prompt, i.e. the default
 # Developer Prompt for x86 output, x64 Native Tools prompt for x64 output
