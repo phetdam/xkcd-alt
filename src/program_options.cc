@@ -33,17 +33,16 @@ option_parse_result parse_options(int argc, char** argv)
   // general options group
   po::options_description desc(program_description(argv[0]) + "\n\nGeneral options");
   desc.add_options()
-    ("help,h", "Print this usage")
-    (
-      "one-line,o",
-      po::bool_switch(),
-      "Print alt text and attestation on one line."
-    )
     (
       "back,b",
       po::value<unsigned int>()->default_value(0)->implicit_value(1),
       "Print alt-text for bth previous XKCD strip. If not given a value, "
       "implicitly sets b=1."
+    )
+    (
+      "one-line,o",
+      po::bool_switch(),
+      "Print alt text and attestation on one line."
     )
   ;
   // debug options group
@@ -62,8 +61,14 @@ option_parse_result parse_options(int argc, char** argv)
       "not to specify this."
     )
   ;
-  // add debug options to top-level options description
-  desc.add(desc_debug);
+  // "other" options group
+  po::options_description desc_other("Other options");
+  desc_other.add_options()
+    ("help,h", "Print this usage and exit")
+    ("version,V", "Print version information and exit")
+  ;
+  // add debug + other options to top-level options description
+  desc.add(desc_debug).add(desc_other);
   // variable map storing options + exit code main should return
   po::variables_map vm;
   int exit_code = EXIT_SUCCESS;

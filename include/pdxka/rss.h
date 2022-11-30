@@ -1,5 +1,5 @@
 /**
- * @file rss_parsing.h
+ * @file rss.h
  * @author Derek Huang
  * @brief Parse retrieved XKCD RSS feed XML
  * @copyright MIT License
