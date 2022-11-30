@@ -8,7 +8,6 @@
 #ifndef PDXKA_RSS_PARSER_H_
 #define PDXKA_RSS_PARSER_H_
 
-#include <any>
 #include <cassert>
 #include <cstdint>
 #include <sstream>
