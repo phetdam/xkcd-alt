@@ -8,16 +8,25 @@
 #ifndef PDXKA_RSS_PARSER_H_
 #define PDXKA_RSS_PARSER_H_
 
+#include <any>
 #include <cassert>
 #include <cstdint>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <curl/curl.h>
+
+/**
+ * Macro evaluating to true if a `CURLcode` is `CURLE_OK`.
+ *
+ * @param status `CURLcode` cURL status code
+ */
+#define PDXKA_CURL_OK(status) if ((status) == CURLE_OK)
 
 /**
  * Macro evaluating to true if a `CURLcode` is not `CURLE_OK`.
@@ -51,25 +60,9 @@ namespace pdxka {
 extern const std::string rss_url;
 
 /**
- * Immutable POD class holding options for get_rss.
- *
- * @param verbose `bool` to make cURL operate verbosely if `true`
- * @param no_verify_peer `bool` to make cURL not verify server's cert if `true`
- * @param no_verify_host `bool` to make cURL not verify server's id if `true`
- */
-struct curl_options {
-  const bool verbose;
-  const bool no_verify_peer;
-  const bool no_verify_host;
-};
-
-/**
  * Enum class for the `curl_result` HTTP[S] request type.
  */
-enum class request_type {
-  GET,
-  POST
-};
+enum class request_type { GET, POST };
 
 /**
  * Immutable POD class holding cURL HTTP[S] result.
@@ -87,6 +80,110 @@ struct curl_result {
 };
 
 /**
+ * Template class holding cURL options.
+ *
+ * @tparam T cURL option value type
+ */
+template <typename T>
+class curl_option {
+public:
+  using value_type = T;
+
+  /**
+   * Constructor.
+   *
+   * @param name `CURLoption` cURL option enum value
+   * @param value `T` cURL option value to set
+   */
+  curl_option(CURLoption name, T value) : name_(name), value_(value) {}
+
+  CURLoption name() const { return name_; }
+  T value() const { return value_; }
+
+private:
+  CURLoption name_;
+  T value_;
+};
+
+namespace detail {
+
+std::size_t curl_writer(
+  char* incoming,
+  std::size_t /* item_size */,
+  std::size_t n_items,
+  void* stream) noexcept;
+
+}  // namespace detail
+
+/**
+ * Get the latest XKCD RSS XML.
+ *
+ * @param url `const std::string&` URL used for XKCD RSS, i.e. `rss_url`
+ * @param options `curl_option<T>` additional cURL options to set
+ */
+template <typename... Ts>
+curl_result get_rss(const std::string& url, curl_option<Ts>... options)
+{
+  // cURL session handle and global error status
+  CURL *handle;
+  CURLcode status;
+  // reason the cURL request has errored out + stream to hold response body
+  std::string reason;
+  std::stringstream stream;
+  // global cURL session init
+  status = curl_global_init(CURL_GLOBAL_DEFAULT);
+  PDXKA_CURL_ERR_HANDLER(status, reason, "Global init error", clean_global);
+  // if good, init the cURL "easy" session
+  handle = curl_easy_init();
+  // on error, clean up and exit
+  if (!handle) {
+    reason = "curl_easy_init errored";
+    goto clean_easy;
+  }
+  // set cURL error buffer, callback writer function, and the write target
+  char errbuf[CURL_ERROR_SIZE];
+  curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, &errbuf);
+  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, detail::curl_writer);
+  curl_easy_setopt(handle, CURLOPT_WRITEDATA, &stream);
+  // set URL to make GET request to (errors if no heap space left)
+  status = curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // set cURL options (only if exit status is good) using fold
+  (
+    [&]
+    {
+      PDXKA_CURL_OK(status)
+        status = curl_easy_setopt(handle, options.name(), options.value());
+    }(),
+    ...
+  );
+  // check last eror and clean up if necessary
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // perform GET request
+  status = curl_easy_perform(handle);
+  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
+  // clean up both "easy" and global sessions
+clean_easy:
+  curl_easy_cleanup(handle);
+clean_global:
+  curl_global_cleanup();
+  return {status, reason, request_type::GET, stream.str()};
+}
+
+/**
+ * Get the latest XKCD RSS XML.
+ *
+ * Uses `rss_url` as the URL to the XKCD RSS XML.
+ *
+ * @param options `curl_option<T>` additional cURL options to set
+ */
+template <typename... Ts>
+inline curl_result get_rss(curl_option<Ts>... options)
+{
+  return get_rss(rss_url, options...);
+}
+
+/**
  * Return Boost `ptree` holding the latest XKCD RSS XML.
  *
  * @param xml `const std::string&` raw XKCD RSS XML
@@ -102,30 +199,6 @@ inline boost::property_tree::ptree parse_rss(const std::string& xml)
   std::stringstream stream(xml, std::ios_base::in);
   pt::read_xml(stream, tree, pt::xml_parser::no_comments);
   return tree;
-}
-
-namespace detail {
-
-std::size_t curl_writer(
-  char* incoming,
-  std::size_t /* item_size */,
-  std::size_t n_items,
-  void* stream) noexcept;
-
-}  // namespace detail
-
-curl_result get_rss(const std::string& url, curl_options options = {});
-
-/**
- * Get the latest XKCD RSS XML.
- *
- * Uses `rss_url` as the URL to the XKCD RSS XML.
- *
- * @param options `curl_options` cURL options struct
- */
-inline curl_result get_rss(curl_options options = {})
-{
-  return get_rss(rss_url, options);
 }
 
 /**

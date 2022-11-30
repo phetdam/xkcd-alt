@@ -25,8 +25,19 @@ int main(int argc, char** argv)
   // extract variables from parse_result variable map
   const auto attest = parse_result.map["attest"].as<bool>();
   const auto previous = parse_result.map["back"].as<unsigned int>();
-  // get XKCD RSS as a vector of rss_items
-  const auto res = pdxka::get_rss();  // TODO: allow more options
+  const auto verbose = parse_result.map["verbose"].as<bool>();
+  const auto insecure = parse_result.map["insecure"].as<bool>();
+  // get XKCD RSS as a string using cURL
+  const auto res = pdxka::get_rss(
+    pdxka::curl_option{CURLOPT_VERBOSE, static_cast<long>(verbose)},
+    pdxka::curl_option{CURLOPT_SSL_VERIFYPEER, static_cast<long>(!insecure)}
+  );
+  // if request error, just print the reason and exit
+  PDXKA_CURL_NOT_OK(res.status) {
+    std::cerr << "cURL error " << res.status << ": " << res.reason << std::endl;
+    return EXIT_FAILURE;
+  }
+  // dummy: get XKCD RSS as a vector of rss_items
   const auto rss_items = pdxka::to_item_vector(pdxka::parse_rss(res.payload));
   // dummy: print all the titles and subtitles
   for (const auto& rss_item : rss_items)

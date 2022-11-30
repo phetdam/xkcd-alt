@@ -63,67 +63,6 @@ std::size_t curl_writer(
 }  // namespace detail
 
 /**
- * Get the latest XKCD RSS XML.
- *
- * @param url `const std::string&` URL used for XKCD RSS, i.e. `rss_url`
- * @param options `curl_options` cURL options struct
- */
-curl_result get_rss(const std::string& url, curl_options options)
-{
-  // cURL session handle and global error status
-  CURL *handle;
-  CURLcode status;
-  // reason the cURL request has errored out + stream to hold response body
-  std::string reason;
-  std::stringstream stream;
-  // global cURL session init
-  status = curl_global_init(CURL_GLOBAL_DEFAULT);
-  PDXKA_CURL_ERR_HANDLER(status, reason, "Global init error", clean_global);
-  // if good, init the cURL "easy" session
-  handle = curl_easy_init();
-  // on error, clean up and exit
-  if (!handle) {
-    reason = "curl_easy_init errored";
-    goto clean_easy;
-  }
-  // set cURL error buffer
-  char errbuf[CURL_ERROR_SIZE];
-  status = curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, &errbuf);
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // set URL to make GET request to
-  status = curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // set cURL callback writer function
-  status = curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, detail::curl_writer);
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // set cURL callback writer function's write target
-  status = curl_easy_setopt(handle, CURLOPT_WRITEDATA, &stream);
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // set cURL options
-  if (options.verbose) {
-    status = curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
-    PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  }
-  if (!options.no_verify_peer) {
-    status = curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 1L);
-    PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  }
-  if (!options.no_verify_host) {
-    status = curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 1L);
-    PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  }
-  // perform GET request
-  status = curl_easy_perform(handle);
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // clean up both "easy" and global sessions
-clean_easy:
-  curl_easy_cleanup(handle);
-clean_global:
-  curl_global_cleanup();
-  return {status, reason, request_type::GET, stream.str()};
-}
-
-/**
  * Populate `rss_item` data from Boost `ptree` containing XKCD RSS item data.
  *
  * Returns `item` pointer to allow method chaining.

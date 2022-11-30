@@ -34,12 +34,24 @@ option_parse_result parse_options(int argc, char** argv)
   po::options_description desc(program_description(argv[0]));
   desc.add_options()
     ("help,h", "Print this usage")
+    (
+      "verbose,v",
+      po::bool_switch(),
+      "Allow cURL to print what's going on to stderr. Useful for debugging "
+      "or satisfying curiosity."
+    )
     ("attest,a", po::bool_switch(), "Include XKCD strip title and URL")
     (
       "back,b",
       po::value<unsigned int>()->default_value(0)->implicit_value(1),
       "Print alt-text for bth previous XKCD strip. If not given a value, "
       "implicitly sets b=1."
+    )
+    (
+      "insecure,k",
+      po::bool_switch(),
+      "Allow cURL to skip verification of the server's SSL certificate. Try "
+      "not to specify this."
     )
   ;
   // variable map storing options + exit code main should return

@@ -45,7 +45,8 @@ else()
     endif()
 endif()
 
-find_package(CURL 7.68 REQUIRED)
+# need to be able to make HTTPS request
+find_package(CURL 7.68 REQUIRED COMPONENTS HTTPS)
 # program_options is not header-only
 find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
 
