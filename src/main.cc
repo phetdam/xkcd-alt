@@ -8,9 +8,13 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <string>
 
-#include "pdxka/option_parser.h"
-#include "pdxka/rss_parser.h"
+#include <boost/exception/diagnostic_information.hpp>
+
+#include "pdxka/program_options.h"
+#include "pdxka/rss.h"
+#include "pdxka/string.h"
 
 int main(int argc, char** argv)
 {
@@ -23,7 +27,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
   }
   // extract variables from parse_result variable map
-  const auto attest = parse_result.map["attest"].as<bool>();
+  const auto one_line = parse_result.map["one-line"].as<bool>();
   const auto previous = parse_result.map["back"].as<unsigned int>();
   const auto verbose = parse_result.map["verbose"].as<bool>();
   const auto insecure = parse_result.map["insecure"].as<bool>();
@@ -37,12 +41,35 @@ int main(int argc, char** argv)
     std::cerr << "cURL error " << res.status << ": " << res.reason << std::endl;
     return EXIT_FAILURE;
   }
-  // dummy: get XKCD RSS as a vector of rss_items
-  const auto rss_items = pdxka::to_item_vector(pdxka::parse_rss(res.payload));
-  // dummy: print all the titles and subtitles
-  for (const auto& rss_item : rss_items)
-    std::cout << rss_item.title() << " -- " << rss_item.img_title() << "\n";
-  // dummy: print int values of attest and previous
-  std::cout << "attest=" << attest << ", previous=" << previous << std::endl;
+  // try to get XKCD RSS as a vector of rss_items, throw on error
+  pdxka::rss_item_vector rss_items;
+  try {
+    rss_items = pdxka::to_item_vector(pdxka::parse_rss(res.payload));
+  }
+  catch (...) {
+    std::cerr << boost::current_exception_diagnostic_information() << std::endl;
+    return EXIT_FAILURE + 1;
+  }
+  // if empty, error out
+  const auto n_items = rss_items.size();
+  if (!n_items) {
+    std::cerr << "Error: Couldn't find any one-liners in RSS feed!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // if previous is size or greater, too far back
+  if (previous >= n_items) {
+    std::cerr << "Error: Can only go back at most " << n_items - 1 <<
+      " strips, not " << previous << " strips" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // if printing as one line
+  const auto& item = rss_items[previous];
+  if (one_line)
+    std::cout << item.img_title() << " -- " << item.guid();
+  // else print fortune-style
+  else
+    std::cout << pdxka::line_wrap(item.img_title()) << "\n\t\t-- " << item.guid();
+  // last newline + finally flush the buffer
+  std::cout << std::endl;
   return EXIT_SUCCESS;
 }

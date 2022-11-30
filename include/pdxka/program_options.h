@@ -1,12 +1,12 @@
 /**
- * @file option_parser.h
+ * @file option_parsing.h
  * @author Derek Huang
  * @brief Parse the CLI options using Boost.ProgramOptions
  * @copyright MIT License
  */
 
-#ifndef PDXKA_OPTION_PARSER_H_
-#define PDXKA_OPTION_PARSER_H_
+#ifndef PDXKA_OPTION_PARSING_H_
+#define PDXKA_OPTION_PARSING_H_
 
 #include <cstdlib>
 #include <filesystem>
@@ -41,13 +41,11 @@ inline std::string program_description(const char* progname)
   return
     "Usage: " + progpath.filename().string() + " [OPTIONS]"
     "\n\n"
-    "Prints the alt text one-liner for today's XKCD comic."
-    "\n\n"
-    "Options";
+    "Prints the alt text for the most recent XKCD comic.";
 }
 
 option_parse_result parse_options(int argc, char** argv);
 
 }  // namespace pdxka
 
-#endif  // PDXKA_OPTION_PARSER_H_
+#endif  // PDXKA_OPTION_PARSING_H_

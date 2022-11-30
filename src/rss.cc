@@ -1,11 +1,11 @@
 /**
- * @file rss_parser.cc
+ * @file rss.cc
  * @author Derek Huang
  * @brief Parse retrieved XKCD RSS feed XML
  * @copyright MIT License
  */
 
-#include <pdxka/rss_parser.h>
+#include "pdxka/rss.h"
 
 #include <cstdlib>
 #include <iostream>

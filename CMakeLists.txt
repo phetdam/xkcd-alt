@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.21)
 project(
     xkcd-alt
     VERSION 0.0.1
-    DESCRIPTION "CLI tool to get the daily XKCD alt text one-liner"
+    DESCRIPTION "CLI tool to get the latest XKCD alt text"
     HOMEPAGE_URL "https://github.com/phetdam/xkcd-alt"
     LANGUAGES CXX
 )

@@ -1,12 +1,12 @@
 /**
- * @file rss_parser.h
+ * @file rss_parsing.h
  * @author Derek Huang
  * @brief Parse retrieved XKCD RSS feed XML
  * @copyright MIT License
  */
 
-#ifndef PDXKA_RSS_PARSER_H_
-#define PDXKA_RSS_PARSER_H_
+#ifndef PDXKA_RSS_H_
+#define PDXKA_RSS_H_
 
 #include <cassert>
 #include <cstdint>
@@ -275,4 +275,4 @@ rss_item_vector to_item_vector(const boost::property_tree::ptree& rss_tree);
 
 }  // namespace pdxka
 
-#endif  // PDXKA_RSS_PARSER_H_
+#endif  // PDXKA_RSS_H_

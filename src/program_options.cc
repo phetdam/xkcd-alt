@@ -1,11 +1,11 @@
 /**
- * @file option_parser.cc
+ * @file program_options.cc
  * @author Derek Huang
  * @brief Parse the CLI options using Boost.ProgramOptions
  * @copyright MIT License
  */
 
-#include "pdxka/option_parser.h"
+#include "pdxka/program_options.h"
 
 #include <cstdlib>
 #include <exception>
@@ -30,22 +30,30 @@ option_parse_result parse_options(int argc, char** argv)
 {
   // convenience namespace alias
   namespace po = boost::program_options;
-  // options description (with actual description)
-  po::options_description desc(program_description(argv[0]));
+  // general options group
+  po::options_description desc(program_description(argv[0]) + "\n\nGeneral options");
   desc.add_options()
     ("help,h", "Print this usage")
     (
-      "verbose,v",
+      "one-line,o",
       po::bool_switch(),
-      "Allow cURL to print what's going on to stderr. Useful for debugging "
-      "or satisfying curiosity."
+      "Print alt text and attestation on one line."
     )
-    ("attest,a", po::bool_switch(), "Include XKCD strip title and URL")
     (
       "back,b",
       po::value<unsigned int>()->default_value(0)->implicit_value(1),
       "Print alt-text for bth previous XKCD strip. If not given a value, "
       "implicitly sets b=1."
+    )
+  ;
+  // debug options group
+  po::options_description desc_debug("Debug options");
+  desc_debug.add_options()
+    (
+      "verbose,v",
+      po::bool_switch(),
+      "Allow cURL to print what's going on to stderr. Useful for debugging "
+      "or satisfying curiosity."
     )
     (
       "insecure,k",
@@ -54,6 +62,8 @@ option_parse_result parse_options(int argc, char** argv)
       "not to specify this."
     )
   ;
+  // add debug options to top-level options description
+  desc.add(desc_debug);
   // variable map storing options + exit code main should return
   po::variables_map vm;
   int exit_code = EXIT_SUCCESS;
