@@ -15,8 +15,8 @@ cmake_minimum_required(VERSION 3.21)
 
 # set major, minor, patch versions + version string
 set(PDXKA_MAJOR_VERSION 0)
-set(PDXKA_MINOR_VERSION 0)
-set(PDXKA_PATCH_VERSION 1)
+set(PDXKA_MINOR_VERSION 1)
+set(PDXKA_PATCH_VERSION 0)
 set(
     PDXKA_VERSION
     ${PDXKA_MAJOR_VERSION}.${PDXKA_MINOR_VERSION}.${PDXKA_PATCH_VERSION}
