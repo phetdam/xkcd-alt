@@ -45,8 +45,6 @@ std::string line_wrap(
       if (n_used + n_writable <= line_length) {
         for (auto j = n_written; j < i; j++) stream.put(orig[j]);
         n_used += n_writable;
-        // if the line is not full after writing, add a single space
-        // if (n_used < line_length) stream.put(' ');
       }
       // otherwise, no space, so new line. but if word exceeds line_length and
       // we choose to enforce hard wrap (break the word across lines).
