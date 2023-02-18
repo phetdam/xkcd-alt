@@ -8,3 +8,5 @@ build
 build_windows
 # ignore VS Code settings
 .vscode
+# ignore Vim ctags file
+/tags
