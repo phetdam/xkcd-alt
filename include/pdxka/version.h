@@ -42,7 +42,7 @@ inline const char* c_version = version.c_str();
 // version as a macro, using the C string
 #define PDXKA_VERSION pdxka::c_version
 
-// build version, real build defines as lowercase CMake CMAKE_BUILD_TYPE
+// build type, real build defines as lowercase CMake CMAKE_BUILD_TYPE
 #ifndef PDXKA_BUILD_TYPE
 #define PDXKA_BUILD_TYPE "debug"
 #endif  // PDXKA_BUILD_TYPE
