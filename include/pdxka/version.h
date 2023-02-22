@@ -92,11 +92,6 @@ inline const std::string build_type{PDXKA_BUILD_TYPE};
 #endif
 #endif  // PDXKA_SYSTEM_ARCH
 
-// TODO: may need to set manually to win32 on Windows platforms
-#if defined(_WIN32) && !defined(_WIN64)
-#define PDXKA_SYSTEM_ARCH "x86"
-#endif  // !defined(_WIN32) || defined(_WIN64)
-
 namespace pdxka {
 
 /*
