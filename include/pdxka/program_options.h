@@ -12,12 +12,18 @@
 #include <filesystem>
 #include <string>
 
-#include <boost/program_options.hpp>
-
 #include "pdxka/version.h"
+
+#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#include <boost/program_options.hpp>
+// for now, we don't have any alternative implementation
+#else
+#error "pdxka/program_options.h: Must define PDXKA_USE_BOOST_PROGRAM_OPTIONS"
+#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace pdxka {
 
+#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
 /**
  * Struct holding option parsing results.
  *
@@ -30,7 +36,16 @@ struct option_parse_result {
   const boost::program_options::variables_map map;
 };
 
+/**
+ * Parse command-line options for this application.
+ *
+ * Closely follows https://theboostcpplibraries.com/boost.program_options.
+ *
+ * @param argc `int` argument count
+ * @param argv `char**` argument vector
+ */
 option_parse_result parse_options(int argc, char** argv);
+#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 /**
  * Given the program name, return the program's description.

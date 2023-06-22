@@ -56,6 +56,10 @@ add_compile_definitions(
     PDXKA_SYSTEM_NAME="${PDXKA_SYSTEM_NAME}"
     PDXKA_SYSTEM_VERSION="${PDXKA_SYSTEM_VERSION}"
     PDXKA_SYSTEM_ARCH="${PDXKA_SYSTEM_ARCH}"
+    # use Boost.ProgramOptions for command-line option parsing. if not defined,
+    # then hand-rolled implementation (WIP) is to be used. the goal is to get
+    # off Boost.ProgramOptions so only Boost headers are needed.
+    PDXKA_USE_BOOST_PROGRAM_OPTIONS
 )
 
 # compiler-specific options

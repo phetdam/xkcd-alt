@@ -14,10 +14,14 @@
 #include <string>
 
 #include <boost/exception/diagnostic_information.hpp>
+
+#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <boost/program_options.hpp>
+#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace pdxka {
 
+#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
 /**
  * Parse command-line options for this application.
  *
@@ -95,5 +99,6 @@ option_parse_result parse_options(int argc, char** argv)
   }
   return {exit_code, desc, vm};
 }
+#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 }  // namespace pdxka
