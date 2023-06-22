@@ -30,7 +30,7 @@ project(
     LANGUAGES CXX
 )
 
-# default build type is Debug
+# default build type is Debug (single-config generators only)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -60,18 +60,12 @@ add_compile_definitions(
 
 # compiler-specific options
 if(MSVC)
-    # CMake adds /O2 by default for release version
-    if(NOT CMAKE_BUILD_TYPE STREQUAL Release)
-        add_compile_options(/Od /DEBUG)
-    endif()
+    # /O2 added by CMake for Release, /O0 is default
+    add_compile_options($<$<CONFIG:Debug>:/DEBUG>)
 # options are also accepted by clang
 else()
-    add_compile_options(-Wall)
-    if(CMAKE_BUILD_TYPE STREQUAL Release)
-        add_compile_options(-O3)
-    else()
-        add_compile_options(-O0 -ggdb)
-    endif()
+    # -O0 is default
+    add_compile_options(-Wall $<IF:$<CONFIG:Release>,-O3,-ggdb>)
 endif()
 
 # need to be able to make HTTPS request
