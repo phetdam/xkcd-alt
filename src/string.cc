@@ -44,14 +44,14 @@ std::string line_wrap(
       // if there is space in the line, write chars from n_written up to i
 // GCC warns about n_used possibly being used uninitialized for release builds
 // with -03. this seems like a false positive, so we silence the warning
-#ifdef __GNUG__
+#if defined(__GNUG__) && defined(__OPTIMIZE__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif  // __GNUG__
+#endif  // !defined(__GNUG__) || !defined(__OPTIMIZE__)
       if (n_used + n_writable <= line_length) {
-#ifdef __GNUG__
+#if defined(__GNUG__) && defined(__OPTIMIZE__)
 #pragma GCC diagnostic pop
-#endif  // __GNUG__
+#endif  // !defined(__GNUG__) || !defined(__OPTIMIZE__)
         for (auto j = n_written; j < i; j++) stream.put(orig[j]);
         n_used += n_writable;
       }
