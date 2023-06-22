@@ -19,9 +19,6 @@
 
 namespace pdxka {
 
-// current XKCD RSS feed URL
-const std::string rss_url = "https://xkcd.com/rss.xml";
-
 namespace detail {
 
 /**

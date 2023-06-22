@@ -56,7 +56,16 @@
 
 namespace pdxka {
 
-extern const std::string rss_url;
+/**
+ * Return const reference to current XKCD RSS feed URL.
+ *
+ * @note Construct on first use idiom used for static initialization safety.
+ */
+inline const auto& rss_url()
+{
+  static std::string url{"https://xkcd.com/rss.xml"};
+  return url;
+}
 
 /**
  * Enum class for the `curl_result` HTTP[S] request type.
@@ -106,6 +115,17 @@ private:
 
 namespace detail {
 
+/**
+ * cURL callback function used to write received data.
+ *
+ * Returns the number of characters written, where if the returned value is
+ * less than `n_items`, cURL will interpret this as an error and halt.
+ *
+ * @param incoming `char*` buffer of data read by cURL, not `NULL`-terminated
+ * @param item_size `std::size_t` size of char items, always 1 (unused)
+ * @param n_items `std::size_t` number of chars in buffer to write
+ * @param stream `void*` address of a `std::stringstream` to put chars in
+ */
 std::size_t curl_writer(
   char* incoming,
   std::size_t /* item_size */,
@@ -117,7 +137,7 @@ std::size_t curl_writer(
 /**
  * Get the latest XKCD RSS XML.
  *
- * @param url `const std::string&` URL used for XKCD RSS, i.e. `rss_url`
+ * @param url `const std::string&` URL used for XKCD RSS, i.e. `rss_url()`
  * @param options `curl_option<T>` additional cURL options to set
  */
 template <typename... Ts>
@@ -172,14 +192,14 @@ clean_global:
 /**
  * Get the latest XKCD RSS XML.
  *
- * Uses `rss_url` as the URL to the XKCD RSS XML.
+ * Uses `rss_url()` as the URL to the XKCD RSS XML.
  *
  * @param options `curl_option<T>` additional cURL options to set
  */
 template <typename... Ts>
 inline curl_result get_rss(curl_option<Ts>... options)
 {
-  return get_rss(rss_url, options...);
+  return get_rss(rss_url(), options...);
 }
 
 /**
@@ -207,6 +227,7 @@ inline boost::property_tree::ptree parse_rss(const std::string& xml)
  * tag has image `src`, `title`, `alt` as `img_src`, `img_title`, `img_alt`.
  */
 class rss_item {
+private:
   using ptree = boost::property_tree::ptree;
 public:
   /**
@@ -249,6 +270,14 @@ public:
     return item;
   }
 
+  /**
+   * Populate `rss_item` data from Boost `ptree` containing XKCD RSS item data.
+   *
+   * Returns `item` pointer to allow method chaining.
+   *
+   * @param tree `const ptree&` tree containing XKCD TSS item data
+   * @param item `rss_item*` pointer to RSS item to populate
+   */
   static rss_item* from_tree(const ptree& tree, rss_item* item);
 
   const std::string& title() const { return title_; }
@@ -271,6 +300,9 @@ private:
 
 using rss_item_vector = std::vector<rss_item>;
 
+/**
+ * Return a `rss_item_vector` from a Boost property tree holding XKCD RSS XML.
+ */
 rss_item_vector to_item_vector(const boost::property_tree::ptree& rss_tree);
 
 }  // namespace pdxka
