@@ -12,11 +12,14 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <utility>
 
 #include <boost/exception/diagnostic_information.hpp>
 
 #ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <boost/program_options.hpp>
+#else
+#include <string_view>
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace pdxka {
@@ -97,7 +100,69 @@ option_parse_result parse_options(int argc, char** argv)
       boost::current_exception_diagnostic_information() << std::endl;
     exit_code = EXIT_FAILURE + 2;
   }
-  return {exit_code, desc, vm};
+  // description and map objects should be moved to avoid copying
+  return {exit_code, std::move(desc), std::move(vm)};
+}
+#else
+bool parse_options(cliopt_map& opt_map, int argc, char **argv)
+{
+  using mapped_type = typename std::decay_t<decltype(opt_map)>::mapped_type;
+  // loop through arguments
+  for (int i = 1; i < argc; i++) {
+    // current argument (more convenient to use string_view)
+    std::string_view arg{argv[i]};
+    // print help
+    if (arg == "-h" || arg == "--help")
+      opt_map.try_emplace("help", mapped_type{});
+    // print version
+    else if (arg == "-V" || arg == "--version")
+      opt_map.try_emplace("version", mapped_type{});
+    // allow cURL to operate insecurely by skipping server SSL verification
+    else if (arg == "-k" || arg == "--insecure")
+      opt_map.try_emplace("insecure", mapped_type{});
+    // run verbosely
+    else if (arg == "-v" || arg == "--verbose")
+      opt_map.try_emplace("verbose", mapped_type{});
+    // print alt text and attestation on one line
+    else if (arg == "-o" || arg == "--one-line")
+      opt_map.try_emplace("one_line", mapped_type{});
+    // short option to print alt text for bth previous XKCD strip
+    else if (arg == "-b") {
+      // advance to find argument for number of strips, error if none
+      i++;
+      if (i >= argc) {
+        std::cerr << "error: no argument for -b, --back provided" << std::endl;
+        return false;
+      }
+      // otherwise insert and allow overwriting
+      opt_map.insert_or_assign("back", mapped_type{argv[i]});
+    }
+    // short option to print alt text for bth previous XKCD strip, but the
+    // number of strips to go back is appended to option, e.g. -b2
+    else if (arg.substr(0, 2) == "-b")
+      opt_map.insert_or_assign("back", mapped_type{arg.substr(2)});
+    // long option to print alt text for bth previous XKCD strip
+    else if (arg == "--back") {
+      // advance to find argument for number of strips, error if none
+      i++;
+      if (i >= argc) {
+        std::cerr << "error: no argument for -b, --back provided" << std::endl;
+        return false;
+      }
+      // otherwise insert and allow overwriting
+      opt_map.insert_or_assign("back", mapped_type{argv[i]});
+    }
+    // long option to print alt text for bth previous XKCD strip, but the
+    // number of strips to go back is appended, e.g. --back=2
+    else if (arg.substr(0, 7) == "--back=")
+      opt_map.insert_or_assign("back", mapped_type{arg.subtr(7)});
+    // unknown option
+    else {
+      std::cerr << "error: unknown option " << arg << std::endl;
+      return false;
+    }
+  }
+  return true;
 }
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 

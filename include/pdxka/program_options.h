@@ -18,6 +18,7 @@
 #include <boost/program_options.hpp>
 // for now, we don't have any alternative implementation
 #else
+//#include <unordered_map>
 #error "pdxka/program_options.h: Must define PDXKA_USE_BOOST_PROGRAM_OPTIONS"
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
@@ -45,6 +46,10 @@ struct option_parse_result {
  * @param argv `char**` argument vector
  */
 option_parse_result parse_options(int argc, char** argv);
+#else
+using cliopt_map = std::unordered_map<std::string, std::vector<std::string>>;
+
+bool parse_options(cliopt_map& map, int argc, char** argv);
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 /**

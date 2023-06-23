@@ -16,9 +16,14 @@
 #include "pdxka/rss.h"
 #include "pdxka/string.h"
 
+#ifndef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#include <stdexcept>
+#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+
 int main(int argc, char** argv)
 {
   // parse command-line options + return exit code if error
+#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
   const auto parse_result = pdxka::parse_options(argc, argv);
   if (parse_result.exit_code) return parse_result.exit_code;
   // if help/version options were specified, print help/version and exit
@@ -35,6 +40,57 @@ int main(int argc, char** argv)
   const auto previous = parse_result.map["back"].as<unsigned int>();
   const auto verbose = parse_result.map["verbose"].as<bool>();
   const auto insecure = parse_result.map["insecure"].as<bool>();
+#else
+  pdxka::cliopt_map opt_map;
+  if (!pdxka::parse_options(opt_map, argc, argv))
+    return EXIT_FAILURE;
+  // if help/version options were specified, print help/version and exit
+  if (opt_map.find("help") != opt_map.end()) {
+    // TODO: make a proper program description later
+    std::cout << pdxka::program_description(argv[0]) << std::endl;
+    return EXIT_SUCCESS;
+  }
+  if (opt_map.find("version") != opt_map.end()) {
+    // TODO: make a proper program version description later
+    std::cout << pdxka::version_description(argv[0]) << std::endl;
+    return EXIT_SUCCESS;
+  }
+  // extract variables from options map
+  const auto one_line = (opt_map.find("one_line") != opt_map.end());
+  const auto previous = [&opt_map]
+  {
+    auto back_iter = opt_map.find("back");
+    // if not specified, we just return 0
+    if (back_iter == opt_map.end())
+      return 0;
+    // otherwise, check that the value is convertible to unsigned int
+    int back;
+    try {
+      back = std::stoi(back_iter->at(0));
+    }
+    // catch conversion failure or overflow
+    catch (const std::invalid_argument&) {
+      std::cerr << "error: " << back_iter->at(0) << " is an invalid argument " <<
+        "for -b, --back" << std::endl;
+      return EXIT_FAILURE;
+    }
+    catch (const std::out_of_range&) {
+      std::cerr << "error: " << back_iter->at(0) << " is out of integer range " <<
+        std::endl;
+      return EXIT_FAILURE;
+    }
+    // can't be negative
+    if (back < 0) {
+      std::cerr << "error: invalid argument " << back " << for -b, --back. " <<
+        "specified value must be positive" << std::endl;
+      return EXIT_FAILURE;
+    }
+    // cast to unsigned int
+    return static_cast<unsigned int>(back);
+  }();
+  const auto verbose = (opt_map.find("verbose") != opt_map.end());
+  const auto insecure = (opt_map.find("insecure") != opt_map.end());
+#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
   // get XKCD RSS as a string using cURL
   const auto res = pdxka::get_rss(
     pdxka::curl_option{CURLOPT_VERBOSE, static_cast<long>(verbose)},
