@@ -18,8 +18,9 @@
 #include <boost/program_options.hpp>
 // for now, we don't have any alternative implementation
 #else
-//#include <unordered_map>
-#error "pdxka/program_options.h: Must define PDXKA_USE_BOOST_PROGRAM_OPTIONS"
+#include <unordered_map>
+#include <vector>
+// #error "pdxka/program_options.h: Must define PDXKA_USE_BOOST_PROGRAM_OPTIONS"
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace pdxka {

@@ -128,34 +128,32 @@ bool parse_options(cliopt_map& opt_map, int argc, char **argv)
       opt_map.try_emplace("one_line", mapped_type{});
     // short option to print alt text for bth previous XKCD strip
     else if (arg == "-b") {
-      // advance to find argument for number of strips, error if none
+      // advance to find argument for number of strips, use 1 if none
       i++;
-      if (i >= argc) {
-        std::cerr << "error: no argument for -b, --back provided" << std::endl;
-        return false;
-      }
+      if (i >= argc)
+        opt_map.insert_or_assign("back", mapped_type{"1"});
       // otherwise insert and allow overwriting
-      opt_map.insert_or_assign("back", mapped_type{argv[i]});
+      else
+        opt_map.insert_or_assign("back", mapped_type{argv[i]});
     }
     // short option to print alt text for bth previous XKCD strip, but the
     // number of strips to go back is appended to option, e.g. -b2
     else if (arg.substr(0, 2) == "-b")
-      opt_map.insert_or_assign("back", mapped_type{arg.substr(2)});
+      opt_map.insert_or_assign("back", mapped_type{arg.substr(2).data()});
     // long option to print alt text for bth previous XKCD strip
     else if (arg == "--back") {
-      // advance to find argument for number of strips, error if none
+      // advance to find argument for number of strips, use 1 if none
       i++;
-      if (i >= argc) {
-        std::cerr << "error: no argument for -b, --back provided" << std::endl;
-        return false;
-      }
+      if (i >= argc)
+        opt_map.insert_or_assign("back", mapped_type{"1"});
       // otherwise insert and allow overwriting
-      opt_map.insert_or_assign("back", mapped_type{argv[i]});
+      else
+        opt_map.insert_or_assign("back", mapped_type{argv[i]});
     }
     // long option to print alt text for bth previous XKCD strip, but the
     // number of strips to go back is appended, e.g. --back=2
     else if (arg.substr(0, 7) == "--back=")
-      opt_map.insert_or_assign("back", mapped_type{arg.subtr(7)});
+      opt_map.insert_or_assign("back", mapped_type{arg.substr(7).data()});
     // unknown option
     else {
       std::cerr << "error: unknown option " << arg << std::endl;

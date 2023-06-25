@@ -18,6 +18,7 @@
 
 #ifndef PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <stdexcept>
+#include <utility>
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 int main(int argc, char** argv)
@@ -57,39 +58,44 @@ int main(int argc, char** argv)
   }
   // extract variables from options map
   const auto one_line = (opt_map.find("one_line") != opt_map.end());
-  const auto previous = [&opt_map]
+  const auto [previous, previous_valid] = [&opt_map]
   {
-    auto back_iter = opt_map.find("back");
+    using value_type = std::pair<unsigned int, bool>;
     // if not specified, we just return 0
+    auto back_iter = opt_map.find("back");
     if (back_iter == opt_map.end())
-      return 0;
-    // otherwise, check that the value is convertible to unsigned int
+      return value_type{0, true};
+    // specified, so get const reference to string value + declare int value
+    const auto& back_input = opt_map.at("back")[0];
     int back;
+    // we need to convert to integral value; int is accepted for input sanity
     try {
-      back = std::stoi(back_iter->at(0));
+      back = std::stoi(back_input);
     }
     // catch conversion failure or overflow
     catch (const std::invalid_argument&) {
-      std::cerr << "error: " << back_iter->at(0) << " is an invalid argument " <<
+      std::cerr << "error: " << back_input << " is an invalid argument " <<
         "for -b, --back" << std::endl;
-      return EXIT_FAILURE;
+      return value_type{0, false};
     }
     catch (const std::out_of_range&) {
-      std::cerr << "error: " << back_iter->at(0) << " is out of integer range " <<
+      std::cerr << "error: " << back_input << " is out of integer range " <<
         std::endl;
-      return EXIT_FAILURE;
+      return value_type{0, false};
     }
     // can't be negative
     if (back < 0) {
-      std::cerr << "error: invalid argument " << back " << for -b, --back. " <<
+      std::cerr << "error: invalid argument " << back << " for -b, --back. " <<
         "specified value must be positive" << std::endl;
-      return EXIT_FAILURE;
+      return value_type{0, false};
     }
-    // cast to unsigned int
-    return static_cast<unsigned int>(back);
+    return value_type{back, true};
   }();
   const auto verbose = (opt_map.find("verbose") != opt_map.end());
   const auto insecure = (opt_map.find("insecure") != opt_map.end());
+  // exit with failure if previous_valid failed
+  if (!previous_valid)
+    return EXIT_FAILURE;
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
   // get XKCD RSS as a string using cURL
   const auto res = pdxka::get_rss(
