@@ -19,6 +19,7 @@
 #ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <boost/program_options.hpp>
 #else
+#include <cstring>
 #include <string_view>
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
@@ -126,11 +127,12 @@ bool parse_options(cliopt_map& opt_map, int argc, char **argv)
     // print alt text and attestation on one line
     else if (arg == "-o" || arg == "--one-line")
       opt_map.try_emplace("one_line", mapped_type{});
-    // short option to print alt text for bth previous XKCD strip
-    else if (arg == "-b") {
+    // option to print alt text for bth previous XKCD strip
+    else if (arg == "-b" || arg == "--back") {
       // advance to find argument for number of strips, use 1 if none
       i++;
-      if (i >= argc)
+      // allows other options following -b, --back without arguments
+      if (i >= argc || (std::strlen(argv[i]) && argv[i][0] == '-'))
         opt_map.insert_or_assign("back", mapped_type{"1"});
       // otherwise insert and allow overwriting
       else
@@ -140,16 +142,6 @@ bool parse_options(cliopt_map& opt_map, int argc, char **argv)
     // number of strips to go back is appended to option, e.g. -b2
     else if (arg.substr(0, 2) == "-b")
       opt_map.insert_or_assign("back", mapped_type{arg.substr(2).data()});
-    // long option to print alt text for bth previous XKCD strip
-    else if (arg == "--back") {
-      // advance to find argument for number of strips, use 1 if none
-      i++;
-      if (i >= argc)
-        opt_map.insert_or_assign("back", mapped_type{"1"});
-      // otherwise insert and allow overwriting
-      else
-        opt_map.insert_or_assign("back", mapped_type{argv[i]});
-    }
     // long option to print alt text for bth previous XKCD strip, but the
     // number of strips to go back is appended, e.g. --back=2
     else if (arg.substr(0, 7) == "--back=")
