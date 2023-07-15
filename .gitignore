@@ -5,7 +5,7 @@
 *.pdb
 *.so
 build
-build_windows
+build_windows*
 # ignore VS Code settings
 .vscode
 # ignore Vim ctags file
