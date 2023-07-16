@@ -78,7 +78,8 @@ endif()
 # cURL and Boost minimum versions
 set(PDXKA_CURL_VERSION 7.68)
 set(PDXKA_BOOST_VERSION 1.71)
-# need to be able to make HTTPS request
+# need to be able to make HTTPS request. note: CMake errors on Windows, as the
+# generated curl-config Bash script of course cannot be run by CMD
 find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
 # program_options is not header-only, but require only when necessary
 if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
