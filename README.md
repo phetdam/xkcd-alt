@@ -29,9 +29,40 @@ Other options:
 [Boost.ProgramOptions](https://theboostcpplibraries.com/boost.program_options)
 1.71+, and [cURL](https://curl.se/) 7.68+.
 
+In the future, the dependence on Boost.ProgramOptions may be removed.
+
 ## Building from source
 
-TBA; for now see the "How to build" comments in the top-level `CMakeLists.txt`.
+### *nix
+
+Building is easy with the provided `build.sh` build script. For usage, type
+
+```bash
+./build.sh --help
+```
+
+To build release binaries for this project, simply use the command
+
+```bash
+./build.sh -c Release
+```
+
+Simply typing `./build.sh` will build unoptimized binaries with debug symbols.
+Please note that if `pkg-config` is not installed, CMake may give you the
+following error message:
+
+```
+CMake Error at /usr/share/cmake-3.22/Modules/FindCURL.cmake:175 (message):
+  CURL: Required feature HTTPS is not found
+Call Stack (most recent call first):
+  CMakeLists.txt:77 (find_package)
+```
+
+Ensure that your system has `pkg-config` installed, i.e. with `apt`, etc.
+
+### Windows
+
+TBA. For now, see the "How to build" comments in the top-level `CMakeLists.txt`.
 
 ## Gallery
 
