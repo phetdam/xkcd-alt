@@ -56,26 +56,36 @@ add_compile_definitions(
     PDXKA_SYSTEM_NAME="${PDXKA_SYSTEM_NAME}"
     PDXKA_SYSTEM_VERSION="${PDXKA_SYSTEM_VERSION}"
     PDXKA_SYSTEM_ARCH="${PDXKA_SYSTEM_ARCH}"
-    # use Boost.ProgramOptions for command-line option parsing. if not defined,
-    # then hand-rolled implementation (WIP) is to be used. the goal is to get
-    # off Boost.ProgramOptions so only Boost headers are needed.
-    PDXKA_USE_BOOST_PROGRAM_OPTIONS
 )
+# use Boost.ProgramOptions for command-line option parsing. if not defined,
+# then hand-rolled implementation (WIP) is to be used. the goal is to get off
+# Boost.ProgramOptions so only Boost headers are needed.
+if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+    message(STATUS "Required: Boost program_options")
+    add_compile_definitions(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+endif()
 
 # compiler-specific options
 if(MSVC)
     # /O2 added by CMake for Release, /O0 is default
-    add_compile_options($<$<CONFIG:Debug>:/DEBUG>)
+    add_compile_options(/Wall $<$<CONFIG:Debug>:/DEBUG>)
 # options are also accepted by clang
 else()
     # -O0 is default
     add_compile_options(-Wall $<IF:$<CONFIG:Release>,-O3,-ggdb>)
 endif()
 
+# cURL and Boost minimum versions
+set(PDXKA_CURL_VERSION 7.68)
+set(PDXKA_BOOST_VERSION 1.71)
 # need to be able to make HTTPS request
-find_package(CURL 7.68 REQUIRED COMPONENTS HTTPS)
-# program_options is not header-only
-find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
+find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
+# program_options is not header-only, but require only when necessary
+if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+    find_package(Boost ${PDXKA_BOOST_VERSION} REQUIRED COMPONENTS program_options)
+else()
+    find_package(Boost ${PDXKA_BOOST_VERSION} REQUIRED)
+endif()
 
 # include dir and tool name
 set(PDXKA_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
