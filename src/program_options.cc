@@ -31,7 +31,7 @@ option_parse_result parse_options(int argc, char* argv[])
   // convenience namespace alias
   namespace po = boost::program_options;
   // general options group
-  po::options_description desc(program_description(argv[0]) + "\n\nGeneral options");
+  po::options_description desc(program_description() + "\n\nGeneral options");
   desc.add_options()
     (
       "back,b",

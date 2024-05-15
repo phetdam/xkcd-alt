@@ -108,6 +108,4 @@ configure_file(
     @ONLY NEWLINE_STYLE LF
 )
 
-# TODO: generate version.h and program name instead of using macros + argv[0]
-
 add_subdirectory(src)
