@@ -4,9 +4,11 @@
 *.lib
 *.pdb
 *.so
-build
-build_windows*
+/build
+/build_windows*
 # ignore VS Code settings
 .vscode
 # ignore Vim ctags file
 /tags
+# ignore generated version.h header
+/include/pdxka/version.h

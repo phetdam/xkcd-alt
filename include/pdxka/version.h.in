@@ -1,0 +1,88 @@
+/**
+ * @file version.h
+ * @author Derek Huang
+ * @brief C++ header for version management
+ * @copyright MIT License
+ */
+
+#ifndef PDXKA_VERSION_H_
+#define PDXKA_VERSION_H_
+
+#include <string>
+
+/**
+ * Project major version.
+ */
+#define PDXKA_MAJOR_VERSION @PDXKA_MAJOR_VERSION@
+
+/**
+ * Project minor version.
+ */
+#define PDXKA_MINOR_VERSION @PDXKA_MINOR_VERSION@
+
+/**
+ * Project patch version.
+ */
+#define PDXKA_PATCH_VERSION @PDXKA_PATCH_VERSION@
+
+/**
+ * Project version string literal.
+ */
+#define PDXKA_STRING_VERSION "@PDXKA_VERSION@"
+
+/**
+ * Project build type.
+ */
+#define PDXKA_BUILD_TYPE "@PDXKA_BUILD_TYPE@"
+
+/**
+ * Project target system name.
+ */
+#define PDXKA_SYSTEM_NAME "@PDXKA_SYSTEM_NAME@"
+
+/**
+ * Project target system version provided by CMake.
+ */
+#define PDXKA_SYSTEM_VERSION "@PDXKA_SYSTEM_VERSION@"
+
+/**
+ * Project target system CPU architecture.
+ */
+#define PDXKA_SYSTEM_ARCH "@PDXKA_SYSTEM_ARCH@"
+
+// TODO: this could be split into a separate C++-only header
+namespace pdxka {
+
+/**
+ * Project version C++ string.
+ */
+inline const std::string version{PDXKA_STRING_VERSION};
+
+/**
+ * Project version C string.
+ */
+inline auto c_version = version.c_str();
+
+/*
+ * Project build type C++ string.
+ */
+inline const std::string build_type{PDXKA_BUILD_TYPE};
+
+/*
+ * Project target system name C++ string.
+ */
+inline const std::string system_name{PDXKA_SYSTEM_NAME};
+
+/**
+ * Project target system version C++ string.
+ */
+inline const std::string system_version{PDXKA_SYSTEM_VERSION};
+
+/**
+ * Project target syste CPU architecture C++ string.
+ */
+inline const std::string system_arch{PDXKA_SYSTEM_ARCH};
+
+}  // namespace pdxka
+
+#endif  // PDXKA_VERSION_H_

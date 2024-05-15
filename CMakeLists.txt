@@ -56,17 +56,6 @@ set(PDXKA_SYSTEM_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# add version definitions as macro definitions
-add_compile_definitions(
-    PDXKA_MAJOR_VERSION=${PDXKA_MAJOR_VERSION}
-    PDXKA_MINOR_VERSION=${PDXKA_MINOR_VERSION}
-    PDXKA_PATCH_VERSION=${PDXKA_PATCH_VERSION}
-    # need double quotes for CMake to pass as a string
-    PDXKA_BUILD_TYPE="${PDXKA_BUILD_TYPE}"
-    PDXKA_SYSTEM_NAME="${PDXKA_SYSTEM_NAME}"
-    PDXKA_SYSTEM_VERSION="${PDXKA_SYSTEM_VERSION}"
-    PDXKA_SYSTEM_ARCH="${PDXKA_SYSTEM_ARCH}"
-)
 # use Boost.ProgramOptions for command-line option parsing. if not defined,
 # then hand-rolled implementation (WIP) is to be used. the goal is to get off
 # Boost.ProgramOptions so only Boost headers are needed.
@@ -109,6 +98,14 @@ include_directories(
     ${PDXKA_INCLUDE}
     SYSTEM ${Boost_INCLUDE_DIRS}
     SYSTEM ${CURL_INCLUDE_DIRS}
+)
+
+# generate version.h from version.h.in with project version/build info. we
+# ensure that the generated header has the same LF line endings as source
+set(PDXKA_VERSION_HEADER ${PDXKA_INCLUDE}/pdxka/version.h)
+configure_file(
+    ${PDXKA_VERSION_HEADER}.in ${PDXKA_VERSION_HEADER}
+    @ONLY NEWLINE_STYLE LF
 )
 
 # TODO: generate version.h and program name instead of using macros + argv[0]
