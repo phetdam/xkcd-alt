@@ -97,7 +97,7 @@ option_parse_result parse_options(int argc, char* argv[])
   return {exit_code, std::move(desc), std::move(vm)};
 }
 #else
-bool parse_options(cliopt_map& opt_map, int argc, char **argv)
+bool parse_options(cliopt_map& opt_map, int argc, char* argv[])
 {
   using mapped_type = typename std::decay_t<decltype(opt_map)>::mapped_type;
   // loop through arguments
