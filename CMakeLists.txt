@@ -69,7 +69,7 @@ endif()
 # compiler-specific options
 if(MSVC)
     # /O2 added by CMake for Release, /O0 is default
-    add_compile_options(/Wall $<$<CONFIG:Debug>:/DEBUG>)
+    add_compile_options(/Wall)
 # options are also accepted by clang
 else()
     # -O0 is default
