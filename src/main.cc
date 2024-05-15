@@ -105,7 +105,7 @@ cliopts extract_args(int argc, char* argv[])
     std::exit(EXIT_SUCCESS);
   }
   if (parse_result.map.count("version")) {
-    std::cout << pdxka::version_description(argv[0]) << std::endl;
+    std::cout << pdxka::version_description() << std::endl;
     std::exit(EXIT_SUCCESS);
   }
   // extract variables from parse_result variable map
@@ -122,11 +122,11 @@ cliopts extract_args(int argc, char* argv[])
   // if help/version options were specified, print help/version and exit
   if (opt_map.find("help") != opt_map.end()) {
     // TODO: make a proper program description later
-    std::cout << pdxka::program_description(argv[0]) << std::endl;
+    std::cout << pdxka::program_description() << std::endl;
     std::exit(EXIT_SUCCESS);
   }
   if (opt_map.find("version") != opt_map.end()) {
-    std::cout << pdxka::version_description(argv[0]) << std::endl;
+    std::cout << pdxka::version_description() << std::endl;
     std::exit(EXIT_SUCCESS);
   }
   // extract variables from options map

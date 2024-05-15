@@ -1,14 +1,16 @@
 /**
  * @file version.h
  * @author Derek Huang
- * @brief C++ header for version management
+ * @brief C/C++ header for version management
  * @copyright MIT License
  */
 
 #ifndef PDXKA_VERSION_H_
 #define PDXKA_VERSION_H_
 
+#ifdef __cplusplus
 #include <string>
+#endif // __cplusplus
 
 /**
  * Project major version.
@@ -50,7 +52,13 @@
  */
 #define PDXKA_SYSTEM_ARCH "@PDXKA_SYSTEM_ARCH@"
 
+/**
+ * Project binary executable name.
+ */
+#define PDXKA_PROGNAME "@PDXKA_PROGNAME@"
+
 // TODO: this could be split into a separate C++-only header
+#ifdef __cplusplus
 namespace pdxka {
 
 /**
@@ -79,10 +87,16 @@ inline const std::string system_name{PDXKA_SYSTEM_NAME};
 inline const std::string system_version{PDXKA_SYSTEM_VERSION};
 
 /**
- * Project target syste CPU architecture C++ string.
+ * Project target system CPU architecture C++ string.
  */
 inline const std::string system_arch{PDXKA_SYSTEM_ARCH};
 
+/**
+ * Project binary executable name C++ string.
+ */
+inline const std::string progname{PDXKA_PROGNAME};
+
 }  // namespace pdxka
+#endif  // __cplusplus
 
 #endif  // PDXKA_VERSION_H_

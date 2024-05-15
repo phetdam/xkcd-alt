@@ -64,33 +64,24 @@ bool parse_options(cliopt_map& map, int argc, char* argv[]);
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 /**
- * Given the program name, return the program's description.
- *
- * The program name will only display its base name, i.e. without directories.
- *
- * @param progname `const char*` `NULL`-terminated program name
+ * Return the program's description text.
  */
-inline std::string program_description(const char* progname)
+inline std::string program_description()
 {
-  std::filesystem::path progpath{progname};
   return
-    "Usage: " + progpath.filename().string() + " [OPTION...]"
+    "Usage: " PDXKA_PROGNAME " [OPTION...]"
     "\n\n"
     "Prints the alt text for the most recent XKCD comic.";
 }
 
 /**
- * Given the program name, return the program's version description.
- *
- * @param progname `const char*` `NULL`-terminated program name
+ * Return the program's version description.
  */
-inline std::string version_description(const char* progname)
+inline std::string version_description()
 {
-  std::filesystem::path progpath{progname};
   return
-    progpath.filename().string() + " " + pdxka::version + " (" +
-    pdxka::build_type + ", " + pdxka::system_arch + " " +
-    pdxka::system_name + " " + pdxka::system_version + ")";
+    PDXKA_PROGNAME " " PDXKA_STRING_VERSION " (" PDXKA_BUILD_TYPE ", "
+    PDXKA_SYSTEM_ARCH " " PDXKA_SYSTEM_NAME " " PDXKA_SYSTEM_VERSION ")";
 }
 
 }  // namespace pdxka
