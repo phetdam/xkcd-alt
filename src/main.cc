@@ -38,6 +38,47 @@ struct cliopts {
   const bool insecure;
 };
 
+#ifndef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+/**
+ * Extract the value of the `previous` argument from the CLI option map.
+ *
+ * @param opt_map Command-line option map from `pdxka::parse_options`
+ * @returns Pair of `previous` and boolean indicating if the value is valid
+ */
+std::pair<unsigned int, bool> extract_previous(pdxka::cliopt_map& opt_map)
+{
+  // if not specified, we just return 0
+  auto back_iter = opt_map.find("back");
+  if (back_iter == opt_map.end())
+    return {0, true};
+  // specified, so get const reference to string value + declare int value
+  const auto& back_input = opt_map.at("back")[0];
+  int back;
+  // we need to convert to integral value; int is accepted for input sanity
+  try {
+    back = std::stoi(back_input);
+  }
+  // catch conversion failure or overflow
+  catch (const std::invalid_argument&) {
+    std::cerr << "error: " << back_input << " is an invalid argument " <<
+      "for -b, --back" << std::endl;
+    return {0, false};
+  }
+  catch (const std::out_of_range&) {
+    std::cerr << "error: " << back_input << " is out of integer range " <<
+      std::endl;
+    return {0, false};
+  }
+  // can't be negative
+  if (back < 0) {
+    std::cerr << "error: invalid argument " << back << " for -b, --back. " <<
+      "specified value must be positive" << std::endl;
+    return {0, false};
+  }
+  return {back, true};
+}
+#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+
 /**
  * Parse the command-line arguments and extract the relevant argument values.
  *
@@ -90,44 +131,12 @@ cliopts extract_args(int argc, char* argv[])
   }
   // extract variables from options map
   const auto one_line = (opt_map.find("one_line") != opt_map.end());
-  const auto [previous, previous_valid] = [&opt_map]
-  {
-    using value_type = std::pair<unsigned int, bool>;
-    // if not specified, we just return 0
-    auto back_iter = opt_map.find("back");
-    if (back_iter == opt_map.end())
-      return value_type{0, true};
-    // specified, so get const reference to string value + declare int value
-    const auto& back_input = opt_map.at("back")[0];
-    int back;
-    // we need to convert to integral value; int is accepted for input sanity
-    try {
-      back = std::stoi(back_input);
-    }
-    // catch conversion failure or overflow
-    catch (const std::invalid_argument&) {
-      std::cerr << "error: " << back_input << " is an invalid argument " <<
-        "for -b, --back" << std::endl;
-      return value_type{0, false};
-    }
-    catch (const std::out_of_range&) {
-      std::cerr << "error: " << back_input << " is out of integer range " <<
-        std::endl;
-      return value_type{0, false};
-    }
-    // can't be negative
-    if (back < 0) {
-      std::cerr << "error: invalid argument " << back << " for -b, --back. " <<
-        "specified value must be positive" << std::endl;
-      return value_type{0, false};
-    }
-    return value_type{back, true};
-  }();
-  const auto verbose = (opt_map.find("verbose") != opt_map.end());
-  const auto insecure = (opt_map.find("insecure") != opt_map.end());
-  // exit with failure if previous_valid failed
+  const auto [previous, previous_valid] = extract_previous(opt_map);
   if (!previous_valid)
     std::exit(EXIT_FAILURE);
+  const auto verbose = (opt_map.find("verbose") != opt_map.end());
+  const auto insecure = (opt_map.find("insecure") != opt_map.end());
+  // done, populate struct
   return {one_line, previous, verbose, insecure};
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 }
