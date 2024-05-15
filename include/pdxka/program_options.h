@@ -16,11 +16,9 @@
 
 #ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <boost/program_options.hpp>
-// for now, we don't have any alternative implementation
 #else
 #include <unordered_map>
 #include <vector>
-// #error "pdxka/program_options.h: Must define PDXKA_USE_BOOST_PROGRAM_OPTIONS"
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace pdxka {
@@ -43,14 +41,26 @@ struct option_parse_result {
  *
  * Closely follows https://theboostcpplibraries.com/boost.program_options.
  *
- * @param argc `int` argument count
- * @param argv `char**` argument vector
+ * @param argc Argument count from `main()`
+ * @param argv Argument vector from `main()`
  */
-option_parse_result parse_options(int argc, char** argv);
+option_parse_result parse_options(int argc, char* argv[]);
 #else
+/**
+ * The command-line options map type.
+ *
+ * This is a simple map of string option name to a vector of argument values.
+ */
 using cliopt_map = std::unordered_map<std::string, std::vector<std::string>>;
 
-bool parse_options(cliopt_map& map, int argc, char** argv);
+/**
+ * Parse command-line options for this application.
+ *
+ * @param map Command-line option argument map to populate
+ * @param argc Argument count from `main()`
+ * @param argv Argument vector from `main()`
+ */
+bool parse_options(cliopt_map& map, int argc, char* argv[]);
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 /**

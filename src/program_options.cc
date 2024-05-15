@@ -26,15 +26,7 @@
 namespace pdxka {
 
 #ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
-/**
- * Parse command-line options for this application.
- *
- * Closely follows https://theboostcpplibraries.com/boost.program_options.
- *
- * @param argc `int` argument count
- * @param argv `char**` argument vector
- */
-option_parse_result parse_options(int argc, char** argv)
+option_parse_result parse_options(int argc, char* argv[])
 {
   // convenience namespace alias
   namespace po = boost::program_options;

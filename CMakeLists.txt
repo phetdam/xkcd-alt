@@ -30,13 +30,23 @@ project(
     LANGUAGES CXX
 )
 
+# use Boost.ProgramOptions for CLI argument parsing
+option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
+
 # default build type is Debug (single-config generators only)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-# we use lowercase build type in the project
-string(TOLOWER ${CMAKE_BUILD_TYPE} PDXKA_BUILD_TYPE)
+# build type maintains case
+set(PDXKA_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+message(STATUS "Config: ${PDXKA_BUILD_TYPE}")
+
+# output artifacts into top-level directory. multi-config generators like
+# Visual Studio will have an extra per-config subdirectory for the build type
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # set some system information variables used for the version info
 set(PDXKA_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
@@ -61,8 +71,10 @@ add_compile_definitions(
 # then hand-rolled implementation (WIP) is to be used. the goal is to get off
 # Boost.ProgramOptions so only Boost headers are needed.
 if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
-    message(STATUS "Required: Boost program_options")
+    message(STATUS "CLI options: Boost program_options")
     add_compile_definitions(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+else()
+    message(STATUS "CLI options: Manual")
 endif()
 
 # compiler-specific options
@@ -98,5 +110,7 @@ include_directories(
     SYSTEM ${Boost_INCLUDE_DIRS}
     SYSTEM ${CURL_INCLUDE_DIRS}
 )
+
+# TODO: generate version.h and program name instead of using macros + argv[0]
 
 add_subdirectory(src)

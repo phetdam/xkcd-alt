@@ -21,40 +21,72 @@
 #include <utility>
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
-int main(int argc, char** argv)
+namespace {
+
+/**
+ * Struct holding parsed command-line options.
+ *
+ * @param one_line Flag to indicate if output should be printed on one line
+ * @param previous Number of XKCD strips to go back from today's strip
+ * @param verbose Flag to operate cURL in verbose mode
+ * @param insecure Flag to allow skip cURL verification of server SSL cert
+ */
+struct cliopts {
+  const bool one_line;
+  const unsigned int previous;
+  const bool verbose;
+  const bool insecure;
+};
+
+/**
+ * Parse the command-line arguments and extract the relevant argument values.
+ *
+ * If there is an error processing arguments program exits with `EXIT_FAILURE`.
+ * If the `-h, --help` or `-V, --version` arguments are specified then the
+ * corresponding help or version output is printed to standard output and the
+ * program will exit with `EXIT_SUCCESS` instead.
+ *
+ * Uses Boost or the hand-wrapped argument parsing depending on compilation.
+ *
+ * @param argc Argument count from `main()`
+ * @param argv Argument vector from `main()`
+ * @returns Struct holding all the parsed command-line options
+ */
+cliopts extract_args(int argc, char* argv[])
 {
-  // parse command-line options + return exit code if error
 #ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
   const auto parse_result = pdxka::parse_options(argc, argv);
-  if (parse_result.exit_code) return parse_result.exit_code;
+  if (parse_result.exit_code)
+    std::exit(parse_result.exit_code);
   // if help/version options were specified, print help/version and exit
   if (parse_result.map.count("help")) {
     std::cout << parse_result.description << std::endl;
-    return EXIT_SUCCESS;
+    std::exit(EXIT_SUCCESS);
   }
   if (parse_result.map.count("version")) {
     std::cout << pdxka::version_description(argv[0]) << std::endl;
-    return EXIT_SUCCESS;
+    std::exit(EXIT_SUCCESS);
   }
   // extract variables from parse_result variable map
-  const auto one_line = parse_result.map["one-line"].as<bool>();
-  const auto previous = parse_result.map["back"].as<unsigned int>();
-  const auto verbose = parse_result.map["verbose"].as<bool>();
-  const auto insecure = parse_result.map["insecure"].as<bool>();
+  return {
+    parse_result.map["one-line"].as<bool>(),
+    parse_result.map["back"].as<unsigned int>(),
+    parse_result.map["verbose"].as<bool>(),
+    parse_result.map["insecure"].as<bool>()
+  };
 #else
   pdxka::cliopt_map opt_map;
   if (!pdxka::parse_options(opt_map, argc, argv))
-    return EXIT_FAILURE;
+    std::exit(EXIT_FAILURE);
   // if help/version options were specified, print help/version and exit
   if (opt_map.find("help") != opt_map.end()) {
     // TODO: make a proper program description later
     std::cout << pdxka::program_description(argv[0]) << std::endl;
-    return EXIT_SUCCESS;
+    std::exit(EXIT_SUCCESS);
   }
   if (opt_map.find("version") != opt_map.end()) {
-    // TODO: make a proper program version description later
     std::cout << pdxka::version_description(argv[0]) << std::endl;
-    return EXIT_SUCCESS;
+    std::exit(EXIT_SUCCESS);
   }
   // extract variables from options map
   const auto one_line = (opt_map.find("one_line") != opt_map.end());
@@ -95,12 +127,22 @@ int main(int argc, char** argv)
   const auto insecure = (opt_map.find("insecure") != opt_map.end());
   // exit with failure if previous_valid failed
   if (!previous_valid)
-    return EXIT_FAILURE;
+    std::exit(EXIT_FAILURE);
+  return {one_line, previous, verbose, insecure};
 #endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+}
+
+}  // namespace
+
+int main(int argc, char* argv[])
+{
+  // parse and extract command-line arguments, printing error messages or
+  // information output and exiting appropriately as necessary
+  auto opts = extract_args(argc, argv);
   // get XKCD RSS as a string using cURL
   const auto res = pdxka::get_rss(
-    pdxka::curl_option{CURLOPT_VERBOSE, static_cast<long>(verbose)},
-    pdxka::curl_option{CURLOPT_SSL_VERIFYPEER, static_cast<long>(!insecure)}
+    pdxka::curl_option{CURLOPT_VERBOSE, static_cast<long>(opts.verbose)},
+    pdxka::curl_option{CURLOPT_SSL_VERIFYPEER, static_cast<long>(!opts.insecure)}
   );
   // if request error, just print the reason and exit
   PDXKA_CURL_NOT_OK(res.status) {
@@ -123,14 +165,14 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
   // if previous is size or greater, too far back
-  if (previous >= n_items) {
+  if (opts.previous >= n_items) {
     std::cerr << "Error: Can only go back at most " << n_items - 1 <<
-      " strips, not " << previous << " strips" << std::endl;
+      " strips, not " << opts.previous << " strips" << std::endl;
     return EXIT_FAILURE;
   }
   // if printing as one line
-  const auto& item = rss_items[previous];
-  if (one_line)
+  const auto& item = rss_items[opts.previous];
+  if (opts.one_line)
     std::cout << item.img_title() << " -- " << item.guid();
   // else print fortune-style
   else
