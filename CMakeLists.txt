@@ -30,8 +30,16 @@ project(
     LANGUAGES CXX
 )
 
+# executable name
+set(PDXKA_PROGNAME xkcd-alt)
+
 # use Boost.ProgramOptions for CLI argument parsing
 option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
+# build tests. defaults to ON since you should build tests
+# TODO: currently OFF since we don't have tests yet
+option(BUILD_TESTS "Build project tests" OFF)
+
+include(CTest)
 
 # default build type is Debug (single-config generators only)
 if(NOT CMAKE_BUILD_TYPE)
@@ -84,18 +92,28 @@ set(PDXKA_BOOST_VERSION 1.71)
 # need to be able to make HTTPS request. note: CMake errors on Windows, as the
 # generated curl-config Bash script of course cannot be run by CMD
 find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
-# program_options is not header-only, but require only when necessary
+# compiled Boost components to search for
+set(PDXKA_BOOST_COMPONENTS "")
+# boost_program_options is compiled
 if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
-    find_package(Boost ${PDXKA_BOOST_VERSION} REQUIRED COMPONENTS program_options)
+    set(PDXKA_BOOST_COMPONENTS ${PDXKA_BOOST_COMPONENTS} program_options)
+endif()
+# boost_timer is compiled (used in unit tests)
+if(BUILD_TESTS)
+    set(PDXKA_BOOST_COMPONENTS ${PDXKA_BOOST_COMPONENTS} timer)
+endif()
+# find Boost headers and any components
+if(PDXKA_BOOST_COMPONENTS)
+    find_package(
+        Boost ${PDXKA_BOOST_VERSION} REQUIRED
+        COMPONENTS ${PDXKA_BOOST_COMPONENTS}
+    )
 else()
     find_package(Boost ${PDXKA_BOOST_VERSION} REQUIRED)
 endif()
 
-# include dir and tool name
+# add include dir. use SYSTEM to suppress warnings from third-party libraries
 set(PDXKA_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(PDXKA_PROGNAME xkcd-alt)
-
-# use SYSTEM to suppress warnings from third-party libraries
 include_directories(
     ${PDXKA_INCLUDE}
     SYSTEM ${Boost_INCLUDE_DIRS}
@@ -118,3 +136,10 @@ configure_file(
 )
 
 add_subdirectory(src)
+
+if(BUILD_TESTS)
+    message(STATUS "Build tests: Enabled")
+    add_subdirectory(test)
+else()
+    message(STATUS "Build tests: Disabled")
+endif()
