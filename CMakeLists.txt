@@ -132,6 +132,9 @@ configure_file(
     ${PDXKA_FEATURES_HEADER}.in ${PDXKA_FEATURES_HEADER}
     @ONLY NEWLINE_STYLE LF
 )
+# note: cmake_path available in CMake 3.20
+cmake_path(GET PDXKA_FEATURES_HEADER FILENAME PDXKA_FEATURES_HEADER_FILENAME)
+message(STATUS "Generated ${PDXKA_FEATURES_HEADER_FILENAME}")
 
 # generate version.h from version.h.in with project version/build info
 set(PDXKA_VERSION_HEADER ${PDXKA_INCLUDE}/pdxka/version.h)
@@ -139,6 +142,8 @@ configure_file(
     ${PDXKA_VERSION_HEADER}.in ${PDXKA_VERSION_HEADER}
     @ONLY NEWLINE_STYLE LF
 )
+cmake_path(GET PDXKA_VERSION_HEADER FILENAME PDXKA_VERSION_HEADER_FILENAME)
+message(STATUS "Generated ${PDXKA_VERSION_HEADER_FILENAME}")
 
 add_subdirectory(src)
 
