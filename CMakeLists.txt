@@ -98,9 +98,10 @@ set(PDXKA_BOOST_COMPONENTS "")
 if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
     set(PDXKA_BOOST_COMPONENTS ${PDXKA_BOOST_COMPONENTS} program_options)
 endif()
-# boost_timer is compiled (used in unit tests)
+# boost_timer is compiled (used in unit tests) and requires boost_filesystem
+# since boost::process::search_path uses Boost filesystem path object
 if(BUILD_TESTS)
-    set(PDXKA_BOOST_COMPONENTS ${PDXKA_BOOST_COMPONENTS} timer)
+    set(PDXKA_BOOST_COMPONENTS ${PDXKA_BOOST_COMPONENTS} filesystem timer)
 endif()
 # find Boost headers and any components
 if(PDXKA_BOOST_COMPONENTS)
