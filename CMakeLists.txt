@@ -103,6 +103,10 @@ endif()
 if(BUILD_TESTS)
     set(PDXKA_BOOST_COMPONENTS ${PDXKA_BOOST_COMPONENTS} filesystem timer)
 endif()
+# sort Boost components just for vanity purposes + print as space-separated
+list(SORT PDXKA_BOOST_COMPONENTS)
+string(REPLACE ";" " " PDXKA_BOOST_COMPONENTS_STRING "${PDXKA_BOOST_COMPONENTS}")
+message(STATUS "Boost components: ${PDXKA_BOOST_COMPONENTS_STRING}")
 # find Boost headers and any components
 if(PDXKA_BOOST_COMPONENTS)
     find_package(
