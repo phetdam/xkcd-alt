@@ -80,8 +80,16 @@ inline std::string program_description()
 inline std::string version_description()
 {
   return
-    PDXKA_PROGNAME " " PDXKA_STRING_VERSION " (" PDXKA_BUILD_TYPE ", "
-    PDXKA_SYSTEM_ARCH " " PDXKA_SYSTEM_NAME " " PDXKA_SYSTEM_VERSION ")";
+    PDXKA_PROGNAME " " PDXKA_VERSION_STRING " (" PDXKA_BUILD_TYPE ", "
+    PDXKA_SYSTEM_ARCH " " PDXKA_SYSTEM_NAME " " PDXKA_SYSTEM_VERSION ") "
+    "libcurl/" PDXKA_LIBCURL_VERSION_STRING " "
+    "libboost/" PDXKA_BOOST_VERSION_STRING " "
+#if defined(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+    "(headers + program_options)"
+#else
+    "(headers)"
+#endif  // !defined(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+    ;
 }
 
 }  // namespace pdxka

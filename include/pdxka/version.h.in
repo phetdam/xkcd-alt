@@ -30,7 +30,7 @@
 /**
  * Project version string literal.
  */
-#define PDXKA_STRING_VERSION "@PDXKA_VERSION@"
+#define PDXKA_VERSION_STRING "@PDXKA_VERSION@"
 
 /**
  * Project build type.
@@ -64,7 +64,7 @@ namespace pdxka {
 /**
  * Project version C++ string.
  */
-inline const std::string version{PDXKA_STRING_VERSION};
+inline const std::string version{PDXKA_VERSION_STRING};
 
 /**
  * Project version C string.
@@ -98,5 +98,38 @@ inline const std::string progname{PDXKA_PROGNAME};
 
 }  // namespace pdxka
 #endif  // __cplusplus
+
+/**
+ * Version number of Boost used by CMake to build the project binary.
+ *
+ * This has the same format as `BOOST_VERSION` from `<boost/version.hpp>` and
+ * can be used for direct version number comparison.
+ */
+#define PDXKA_BOOST_VERSION @Boost_VERSION_MACRO@
+
+/**
+ * String version of Boost used by CMake to build the project binary.
+ */
+#define PDXKA_BOOST_VERSION_STRING "@Boost_VERSION_STRING@"
+
+/**
+ * Major version of Boost used to build the project binary.
+ */
+#define PDXKA_BOOST_MAJOR_VERSION @Boost_MAJOR_VERSION@
+
+/**
+ * Minor version of Boost used to build the project binary.
+ */
+#define PDXKA_BOOST_MINOR_VERSION @Boost_MINOR_VERSION@
+
+/**
+ * Patch version of Boost used to build the project binary.
+ */
+#define PDXKA_BOOST_PATCH_VERSION @Boost_SUBMINOR_VERSION@
+
+/**
+ * String version of libcurl used by CMake to build the project binary.
+ */
+#define PDXKA_LIBCURL_VERSION_STRING "@CURL_VERSION_STRING@"
 
 #endif  // PDXKA_VERSION_H_
