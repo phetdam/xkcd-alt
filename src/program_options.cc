@@ -16,6 +16,8 @@
 
 #include <boost/exception/diagnostic_information.hpp>
 
+#include "pdxka/features.h"
+
 #if PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <boost/program_options.hpp>
 #else
