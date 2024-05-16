@@ -16,16 +16,16 @@
 
 #include <boost/exception/diagnostic_information.hpp>
 
-#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#if PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <boost/program_options.hpp>
 #else
 #include <cstring>
 #include <string_view>
-#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace pdxka {
 
-#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#if PDXKA_USE_BOOST_PROGRAM_OPTIONS
 option_parse_result parse_options(int argc, char* argv[])
 {
   // convenience namespace alias
@@ -79,17 +79,17 @@ option_parse_result parse_options(int argc, char* argv[])
   }
   // option parsing errors
   catch (const po::error& ex) {
-    std::cerr << "error: " << ex.what() << std::endl;
+    std::cerr << "Error: " << ex.what() << std::endl;
     exit_code = EXIT_FAILURE;
   }
   // any STL exceptions
   catch (const std::exception& ex) {
-    std::cerr << "error: STL exception: " << ex.what() << std::endl;
+    std::cerr << "Error: STL exception: " << ex.what() << std::endl;
     exit_code = EXIT_FAILURE + 1;
   }
   // non-STL (ex. platform-specific) exceptions
   catch (...) {
-    std::cerr << "error: unknown exception: " <<
+    std::cerr << "Error: unknown exception: " <<
       boost::current_exception_diagnostic_information() << std::endl;
     exit_code = EXIT_FAILURE + 2;
   }
@@ -140,12 +140,12 @@ bool parse_options(cliopt_map& opt_map, int argc, char* argv[])
       opt_map.insert_or_assign("back", mapped_type{arg.substr(7).data()});
     // unknown option
     else {
-      std::cerr << "error: unknown option " << arg << std::endl;
+      std::cerr << "Error: unknown option " << arg << std::endl;
       return false;
     }
   }
   return true;
 }
-#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 }  // namespace pdxka

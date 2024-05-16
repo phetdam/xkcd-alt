@@ -1,0 +1,16 @@
+/**
+ * @file features.h
+ * @author Derek Huang
+ * @brief C/C++ header for pdxka features
+ * @copyright MIT License
+ */
+
+#ifndef PDXKA_FEATURES_H_
+#define PDXKA_FEATURES_H_
+
+/**
+ * Indicates whether the `pdkxa` project is using `boost_program_options`.
+ */
+#cmakedefine01 PDXKA_USE_BOOST_PROGRAM_OPTIONS
+
+#endif  // PDXKA_FEATURES_H_

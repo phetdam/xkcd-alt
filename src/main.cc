@@ -12,14 +12,15 @@
 
 #include <boost/exception/diagnostic_information.hpp>
 
+#include "pdxka/features.h"
 #include "pdxka/program_options.h"
 #include "pdxka/rss.h"
 #include "pdxka/string.h"
 
-#ifndef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#if !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <stdexcept>
 #include <utility>
-#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace {
 
@@ -38,7 +39,7 @@ struct cliopts {
   const bool insecure;
 };
 
-#ifndef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#if !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 /**
  * Extract the value of the `previous` argument from the CLI option map.
  *
@@ -60,24 +61,24 @@ std::pair<unsigned int, bool> extract_previous(pdxka::cliopt_map& opt_map)
   }
   // catch conversion failure or overflow
   catch (const std::invalid_argument&) {
-    std::cerr << "error: " << back_input << " is an invalid argument " <<
+    std::cerr << "Error: " << back_input << " is an invalid argument " <<
       "for -b, --back" << std::endl;
     return {0, false};
   }
   catch (const std::out_of_range&) {
-    std::cerr << "error: " << back_input << " is out of integer range " <<
+    std::cerr << "Error: " << back_input << " is out of integer range " <<
       std::endl;
     return {0, false};
   }
   // can't be negative
   if (back < 0) {
-    std::cerr << "error: invalid argument " << back << " for -b, --back. " <<
-      "specified value must be positive" << std::endl;
+    std::cerr << "Error: Invalid argument " << back << " for -b, --back. " <<
+      "Specified value must be positive" << std::endl;
     return {0, false};
   }
   return {back, true};
 }
-#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 /**
  * Parse the command-line arguments and extract the relevant argument values.
@@ -95,7 +96,7 @@ std::pair<unsigned int, bool> extract_previous(pdxka::cliopt_map& opt_map)
  */
 cliopts extract_args(int argc, char* argv[])
 {
-#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#if PDXKA_USE_BOOST_PROGRAM_OPTIONS
   const auto parse_result = pdxka::parse_options(argc, argv);
   if (parse_result.exit_code)
     std::exit(parse_result.exit_code);
@@ -138,7 +139,7 @@ cliopts extract_args(int argc, char* argv[])
   const auto insecure = (opt_map.find("insecure") != opt_map.end());
   // done, populate struct
   return {one_line, previous, verbose, insecure};
-#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 }
 
 }  // namespace

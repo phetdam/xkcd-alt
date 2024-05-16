@@ -102,8 +102,15 @@ include_directories(
     SYSTEM ${CURL_INCLUDE_DIRS}
 )
 
-# generate version.h from version.h.in with project version/build info. we
+# generate features.h from features.h.in with any configured features. we
 # ensure that the generated header has the same LF line endings as source
+set(PDXKA_FEATURES_HEADER ${PDXKA_INCLUDE}/pdxka/features.h)
+configure_file(
+    ${PDXKA_FEATURES_HEADER}.in ${PDXKA_FEATURES_HEADER}
+    @ONLY NEWLINE_STYLE LF
+)
+
+# generate version.h from version.h.in with project version/build info
 set(PDXKA_VERSION_HEADER ${PDXKA_INCLUDE}/pdxka/version.h)
 configure_file(
     ${PDXKA_VERSION_HEADER}.in ${PDXKA_VERSION_HEADER}

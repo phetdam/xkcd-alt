@@ -10,5 +10,6 @@
 .vscode
 # ignore Vim ctags file
 /tags
-# ignore generated version.h header
+# ignore generated headers
+/include/pdxka/features.h
 /include/pdxka/version.h

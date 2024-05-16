@@ -12,18 +12,19 @@
 #include <filesystem>
 #include <string>
 
+#include "pdxka/features.h"
 #include "pdxka/version.h"
 
-#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#if PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <boost/program_options.hpp>
 #else
 #include <unordered_map>
 #include <vector>
-#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 namespace pdxka {
 
-#ifdef PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#if PDXKA_USE_BOOST_PROGRAM_OPTIONS
 /**
  * Struct holding option parsing results.
  *
@@ -61,7 +62,7 @@ using cliopt_map = std::unordered_map<std::string, std::vector<std::string>>;
  * @param argv Argument vector from `main()`
  */
 bool parse_options(cliopt_map& map, int argc, char* argv[]);
-#endif  // PDXKA_USE_BOOST_PROGRAM_OPTIONS
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 /**
  * Return the program's description text.
@@ -84,11 +85,11 @@ inline std::string version_description()
     PDXKA_SYSTEM_ARCH " " PDXKA_SYSTEM_NAME " " PDXKA_SYSTEM_VERSION ") "
     "libcurl/" PDXKA_LIBCURL_VERSION_STRING " "
     "libboost/" PDXKA_BOOST_VERSION_STRING " "
-#if defined(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+#if PDXKA_USE_BOOST_PROGRAM_OPTIONS
     "(headers + program_options)"
 #else
     "(headers)"
-#endif  // !defined(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
     ;
 }
 
