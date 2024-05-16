@@ -61,6 +61,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Boost.ProgramOptions so only Boost headers are needed.
 if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
     message(STATUS "CLI options: Boost program_options")
+    # TODO: remove macro definition here and instead define to 1 or 0 in
+    # features.h generated from features.h.in
     add_compile_definitions(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
 else()
     message(STATUS "CLI options: Manual")
