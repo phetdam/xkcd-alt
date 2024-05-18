@@ -86,7 +86,7 @@ inline std::string version_description()
     "libcurl/" PDXKA_LIBCURL_VERSION_STRING " "
     "libboost/" PDXKA_BOOST_VERSION_STRING " "
 #if PDXKA_USE_BOOST_PROGRAM_OPTIONS
-    "(headers + program_options)"
+    "(headers program_options)"
 #else
     "(headers)"
 #endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS

@@ -55,6 +55,8 @@ message(STATUS "Config: ${PDXKA_BUILD_TYPE}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+# separate variable for output directory
+set(PDXKA_BINARY_DIR ${CMAKE_BINARY_DIR})
 
 # set some system information variables used for the version info
 set(PDXKA_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
@@ -133,8 +135,12 @@ configure_file(
     @ONLY NEWLINE_STYLE LF
 )
 # note: cmake_path available in CMake 3.20
-cmake_path(GET PDXKA_FEATURES_HEADER FILENAME PDXKA_FEATURES_HEADER_FILENAME)
-message(STATUS "Generated ${PDXKA_FEATURES_HEADER_FILENAME}")
+cmake_path(
+    RELATIVE_PATH PDXKA_FEATURES_HEADER
+    BASE_DIRECTORY ${PDXKA_INCLUDE}
+    OUTPUT_VARIABLE PDXKA_FEATURES_HEADER_RELATIVE
+)
+message(STATUS "Generated ${PDXKA_FEATURES_HEADER_RELATIVE}")
 
 # generate version.h from version.h.in with project version/build info
 set(PDXKA_VERSION_HEADER ${PDXKA_INCLUDE}/pdxka/version.h)
@@ -142,12 +148,28 @@ configure_file(
     ${PDXKA_VERSION_HEADER}.in ${PDXKA_VERSION_HEADER}
     @ONLY NEWLINE_STYLE LF
 )
-cmake_path(GET PDXKA_VERSION_HEADER FILENAME PDXKA_VERSION_HEADER_FILENAME)
-message(STATUS "Generated ${PDXKA_VERSION_HEADER_FILENAME}")
+cmake_path(
+    RELATIVE_PATH PDXKA_VERSION_HEADER
+    BASE_DIRECTORY ${PDXKA_INCLUDE}
+    OUTPUT_VARIABLE PDXKA_VERSION_HEADER_RELATIVE
+)
+message(STATUS "Generated ${PDXKA_VERSION_HEADER_RELATIVE}")
 
 add_subdirectory(src)
 
 if(BUILD_TESTS)
+    # generate path.h header for test paths
+    set(PDXKA_TEST_PATHS_HEADER ${PDXKA_INCLUDE}/pdxka/testing/path.h)
+    configure_file(
+        ${PDXKA_TEST_PATHS_HEADER}.in ${PDXKA_TEST_PATHS_HEADER}
+        @ONLY NEWLINE_STYLE LF
+    )
+    cmake_path(
+        RELATIVE_PATH PDXKA_TEST_PATHS_HEADER
+        BASE_DIRECTORY ${PDXKA_INCLUDE}
+        OUTPUT_VARIABLE PDXKA_TEST_PATHS_HEADER_RELATIVE
+    )
+    message(STATUS "Generated ${PDXKA_TEST_PATHS_HEADER_RELATIVE}")
     message(STATUS "Build tests: Enabled")
     add_subdirectory(test)
 else()

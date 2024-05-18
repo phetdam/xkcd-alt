@@ -1,0 +1,16 @@
+/**
+ * @file testing/path
+ * @author Derek Huang
+ * @brief C/C++ header for pdxka test paths
+ * @copyright MIT License
+ */
+
+#ifndef PDXKA_TESTING_PATH_H_
+#define PDXKA_TESTING_PATH_H_
+
+/**
+ * Build output directory containing all the binary artifacts.
+ */
+#define PDXKA_BINARY_DIR "@PDXKA_BINARY_DIR@"
+
+#endif  // PDXKA_TESTING_PATH_H_

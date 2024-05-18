@@ -13,3 +13,4 @@
 # ignore generated headers
 /include/pdxka/features.h
 /include/pdxka/version.h
+/include/pdxka/testing/path.h
