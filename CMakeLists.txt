@@ -36,8 +36,11 @@ set(PDXKA_PROGNAME xkcd-alt)
 # use Boost.ProgramOptions for CLI argument parsing
 option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
 # build tests. defaults to ON since you should build tests
-# TODO: currently OFF since we don't have tests yet
-option(BUILD_TESTS "Build project tests" OFF)
+option(BUILD_TESTS "Build project tests" ON)
+# build pdxka_bpo_check with or without Boost.Test
+# TODO: this will be removed later since the test will be incorporated into a
+# larger Boost.Test test runner program. just a temporary option
+option(PDXKA_BPO_CHECK_USE_BOOST_TEST ON)
 
 include(CTest)
 
@@ -103,7 +106,10 @@ endif()
 # boost_timer is compiled (used in unit tests) and requires boost_filesystem
 # since boost::process::search_path uses Boost filesystem path object
 if(BUILD_TESTS)
-    set(PDXKA_BOOST_COMPONENTS ${PDXKA_BOOST_COMPONENTS} filesystem timer)
+    set(
+        PDXKA_BOOST_COMPONENTS
+        ${PDXKA_BOOST_COMPONENTS} filesystem timer unit_test_framework
+    )
 endif()
 # sort Boost components just for vanity purposes + print as space-separated
 list(SORT PDXKA_BOOST_COMPONENTS)
