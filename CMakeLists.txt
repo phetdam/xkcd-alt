@@ -88,7 +88,7 @@ if(MSVC)
 # options are also accepted by clang
 else()
     # -O0 is default
-    add_compile_options(-Wall $<IF:$<CONFIG:Release>,-O3,-ggdb>)
+    add_compile_options(-Wall)
 endif()
 
 # cURL and Boost minimum versions
