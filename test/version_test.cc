@@ -14,17 +14,17 @@
 BOOST_AUTO_TEST_SUITE(xkcd_alt)
 
 /**
- * Test that the project's reported Boost version matches `BOOST_VERSION`.
+ * Test that the project's compile-time Boost version matches `BOOST_VERSION`.
  */
-BOOST_AUTO_TEST_CASE(boost_version)
+BOOST_AUTO_TEST_CASE(boost_compile_version)
 {
   BOOST_TEST(PDXKA_BOOST_VERSION == BOOST_VERSION, "Boost version mismatch");
 }
 
 /**
- * Test that project's reported libcurl version matches the actual version.
+ * Test that project's compile-time libcurl version matches the actual version.
  */
-BOOST_AUTO_TEST_CASE(curl_version)
+BOOST_AUTO_TEST_CASE(curl_compile_version)
 {
   BOOST_TEST(
     PDXKA_LIBCURL_VERSION_STRING == LIBCURL_VERSION,
