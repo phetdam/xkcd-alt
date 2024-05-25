@@ -17,7 +17,7 @@
 #include <boost/process/search_path.hpp>
 
 #include "pdxka/features.h"
-#include "pdxka/testing/path.h"
+#include "pdxka/testing/path.hh"
 #include "pdxka/version.h"
 
 // TODO: consider permanent rewrite using Boost.Test
