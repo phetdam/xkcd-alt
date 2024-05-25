@@ -1,0 +1,33 @@
+/**
+ * @file testing/path.hh
+ * @author Derek Huang
+ * @brief C++ header for pdxka test paths
+ * @copyright MIT License
+ */
+
+#ifndef PDXKA_TESTING_PATH_HH_
+#define PDXKA_TESTING_PATH_HH_
+
+#include <boost/filesystem/path.hpp>
+
+/**
+ * Build output directory containing all the binary artifacts.
+ */
+#define PDXKA_BINARY_DIR "@PDXKA_BINARY_DIR@"
+
+namespace pdxka {
+namespace testing {
+
+/**
+ * Return build output directory as a Boost path object.
+ */
+inline const auto& binary_dir()
+{
+  static boost::filesystem::path dir{PDXKA_BINARY_DIR};
+  return dir;
+}
+
+}  // namespace testing
+}  // namespace pdxka
+
+#endif  // PDXKA_TESTING_PATH_HH_

@@ -18,7 +18,8 @@
 #include <boost/process/search_path.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include "pdxka/testing/path.h"
+#include "pdxka/testing/path.hh"
+#include "pdxka/testing/process.hh"
 #include "pdxka/version.h"
 
 // XKCD alt text program tests
@@ -124,33 +125,19 @@ void check_boost_details(const std::string& output, std::size_t pos)
  */
 BOOST_AUTO_TEST_CASE(bpo_check)
 {
-  namespace bp = boost::process;
-  // streams for redirected stdout and stderr
-  bp::ipstream out_stream;
-  bp::ipstream err_stream;
-  // invoke child process (absolute path so working directory is irrelevant)
-  bp::child child{
-    boost::filesystem::path{PDXKA_BINARY_DIR} / PDXKA_PROGNAME, "-V",
-    bp::std_out > out_stream,
-    bp::std_err > err_stream
-  };
-  // current stdout + stderr lines and full stdout + stderr output
-  std::string out_line;
-  std::string err_line;
-  std::string output;
-  std::string err_output;
-  // synchronously collect output
-  while (child.running()) {
-    if (std::getline(out_stream, out_line) && out_line.size())
-      output += out_line;
-    if (std::getline(err_stream, err_line) && err_line.size())
-      err_output += err_line;
-  }
+  namespace pt = pdxka::testing;
+  // invoke program with absolute path (so working directory is irrelevant)
+  auto output = pt::run_process(pt::binary_dir() / PDXKA_PROGNAME, "-V");
+  // require that process succeeded
+  BOOST_TEST_REQUIRE(
+    !output.error_code(),
+    "process exited with non-zero status " << output.error_code().value()
+  );
   // check for error output
-  check_err_output(err_output);
+  check_err_output(output.error_output());
   // check that runtime reported Boost version matches compile-time string +
   // check that the Boost components used are as expected
-  check_boost_details(output, check_boost_version(output));
+  check_boost_details(output.output(), check_boost_version(output.output()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // xkcd_alt

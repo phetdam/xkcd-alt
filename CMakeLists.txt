@@ -164,8 +164,8 @@ message(STATUS "Generated ${PDXKA_VERSION_HEADER_RELATIVE}")
 add_subdirectory(src)
 
 if(BUILD_TESTS)
-    # generate path.h header for test paths
-    set(PDXKA_TEST_PATHS_HEADER ${PDXKA_INCLUDE}/pdxka/testing/path.h)
+    # generate path.hh header for test paths
+    set(PDXKA_TEST_PATHS_HEADER ${PDXKA_INCLUDE}/pdxka/testing/path.hh)
     configure_file(
         ${PDXKA_TEST_PATHS_HEADER}.in ${PDXKA_TEST_PATHS_HEADER}
         @ONLY NEWLINE_STYLE LF
