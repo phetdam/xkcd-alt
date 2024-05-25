@@ -37,7 +37,7 @@ namespace {
 void check_err_output(const std::string& err_output)
 {
   BOOST_TEST_REQUIRE(
-    !err_output.size(),
+    err_output.empty(),
     "test produced output on stderr:\n\n" << err_output << "\n"
   );
 }
