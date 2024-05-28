@@ -62,6 +62,7 @@ private:
  * @tparam Args... Type parameter pack
  *
  * @param args Parameter pack of arguments for `boost::process::child`
+ * @returns `process_output` object containing captured output and error code
  */
 template <typename... Args>
 auto run_process(Args&&... args)
