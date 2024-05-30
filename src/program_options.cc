@@ -5,7 +5,7 @@
  * @copyright MIT License
  */
 
-#include "pdxka/program_options.h"
+#include "pdxka/program_options.hh"
 
 #include <cstdlib>
 #include <exception>

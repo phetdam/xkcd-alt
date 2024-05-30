@@ -5,7 +5,7 @@
  * @copyright MIT License
  */
 
-#include "pdxka/rss.h"
+#include "pdxka/rss.hh"
 
 #include <cstdlib>
 #include <iostream>

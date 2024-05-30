@@ -13,9 +13,9 @@
 #include <boost/exception/diagnostic_information.hpp>
 
 #include "pdxka/features.h"
-#include "pdxka/program_options.h"
-#include "pdxka/rss.h"
-#include "pdxka/string.h"
+#include "pdxka/program_options.hh"
+#include "pdxka/rss.hh"
+#include "pdxka/string.hh"
 
 #if !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <stdexcept>

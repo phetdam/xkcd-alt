@@ -9,7 +9,7 @@
 #define PDXKA_VERSION_H_
 
 #ifdef __cplusplus
-#include <string>
+#include <string_view>
 #endif // __cplusplus
 
 /**
@@ -62,39 +62,39 @@
 namespace pdxka {
 
 /**
- * Project version C++ string.
+ * Project version C++ string view.
  */
-inline const std::string version{PDXKA_VERSION_STRING};
+inline const std::string_view version{PDXKA_VERSION_STRING};
 
 /**
  * Project version C string.
  */
-inline auto c_version = version.c_str();
+inline auto c_version = version.data();
 
 /*
- * Project build type C++ string.
+ * Project build type C++ string view.
  */
-inline const std::string build_type{PDXKA_BUILD_TYPE};
+inline const std::string_view build_type{PDXKA_BUILD_TYPE};
 
 /*
- * Project target system name C++ string.
+ * Project target system name C++ string view.
  */
-inline const std::string system_name{PDXKA_SYSTEM_NAME};
+inline const std::string_view system_name{PDXKA_SYSTEM_NAME};
 
 /**
- * Project target system version C++ string.
+ * Project target system version C++ string view.
  */
-inline const std::string system_version{PDXKA_SYSTEM_VERSION};
+inline const std::string_view system_version{PDXKA_SYSTEM_VERSION};
 
 /**
- * Project target system CPU architecture C++ string.
+ * Project target system CPU architecture C++ string view.
  */
-inline const std::string system_arch{PDXKA_SYSTEM_ARCH};
+inline const std::string_view system_arch{PDXKA_SYSTEM_ARCH};
 
 /**
- * Project binary executable name C++ string.
+ * Project binary executable name C++ string view.
  */
-inline const std::string progname{PDXKA_PROGNAME};
+inline const std::string_view progname{PDXKA_PROGNAME};
 
 }  // namespace pdxka
 #endif  // __cplusplus

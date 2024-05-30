@@ -1,12 +1,12 @@
 /**
- * @file rss.h
+ * @file rss.hh
  * @author Derek Huang
  * @brief Parse retrieved XKCD RSS feed XML
  * @copyright MIT License
  */
 
-#ifndef PDXKA_RSS_H_
-#define PDXKA_RSS_H_
+#ifndef PDXKA_RSS_HH_
+#define PDXKA_RSS_HH_
 
 #include <cassert>
 #include <cstdint>
@@ -105,8 +105,23 @@ public:
    */
   curl_option(CURLoption name, T value) : name_(name), value_(value) {}
 
-  CURLoption name() const { return name_; }
-  T value() const { return value_; }
+  /**
+   * Return cURL option enum value.
+   */
+  auto name() const noexcept
+  {
+    return name_;
+  }
+
+  /**
+   * Return the option value.
+   *
+   * This is by const ref if the type is larger than a pointer else by value.
+   */
+  std::conditional_t<sizeof(T) <= sizeof(void*), T, const T&> value() const noexcept
+  {
+    return value_;
+  }
 
 private:
   CURLoption name_;
@@ -307,4 +322,4 @@ rss_item_vector to_item_vector(const boost::property_tree::ptree& rss_tree);
 
 }  // namespace pdxka
 
-#endif  // PDXKA_RSS_H_
+#endif  // PDXKA_RSS_HH_

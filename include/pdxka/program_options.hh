@@ -1,12 +1,12 @@
 /**
- * @file program_options.h
+ * @file program_options.hh
  * @author Derek Huang
  * @brief Parse the CLI options using Boost.ProgramOptions
  * @copyright MIT License
  */
 
-#ifndef PDXKA_PROGRAM_OPTIONS_H_
-#define PDXKA_PROGRAM_OPTIONS_H_
+#ifndef PDXKA_PROGRAM_OPTIONS_HH_
+#define PDXKA_PROGRAM_OPTIONS_HH_
 
 #include <cstdlib>
 #include <filesystem>
@@ -98,4 +98,4 @@ inline const auto& version_description()
 
 }  // namespace pdxka
 
-#endif  // PDXKA_PROGRAM_OPTIONS_H_
+#endif  // PDXKA_PROGRAM_OPTIONS_HH_
