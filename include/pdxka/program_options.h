@@ -67,20 +67,22 @@ bool parse_options(cliopt_map& map, int argc, char* argv[]);
 /**
  * Return the program's description text.
  */
-inline std::string program_description()
+inline const auto& program_description()
 {
-  return
+  static std::string desc{
     "Usage: " PDXKA_PROGNAME " [OPTION...]"
     "\n\n"
-    "Prints the alt text for the most recent XKCD comic.";
+    "Prints the alt text for the most recent XKCD comic."
+  };
+  return desc;
 }
 
 /**
- * Return the program's version description.
+ * Return the program's version description text.
  */
-inline std::string version_description()
+inline const auto& version_description()
 {
-  return
+  static std::string desc{
     PDXKA_PROGNAME " " PDXKA_VERSION_STRING " (" PDXKA_BUILD_TYPE ", "
     PDXKA_SYSTEM_ARCH " " PDXKA_SYSTEM_NAME " " PDXKA_SYSTEM_VERSION ") "
     "libcurl/" PDXKA_LIBCURL_VERSION_STRING " "
@@ -90,7 +92,8 @@ inline std::string version_description()
 #else
     "(headers)"
 #endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
-    ;
+  };
+  return desc;
 }
 
 }  // namespace pdxka

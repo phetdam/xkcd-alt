@@ -141,7 +141,7 @@ std::size_t curl_writer(
  * @param options `curl_option<T>` additional cURL options to set
  */
 template <typename... Ts>
-curl_result get_rss(const std::string& url, curl_option<Ts>... options)
+curl_result get_rss(const std::string& url, const curl_option<Ts>&... options)
 {
   // cURL session handle and global error status
   CURL *handle;
