@@ -224,7 +224,7 @@ inline curl_result get_rss(curl_option<Ts>... options)
  *
  * @throws `boost::property_tree::xml_parser::xml_parser_error` if parse fails
  */
-inline boost::property_tree::ptree parse_rss(const std::string& xml)
+inline auto parse_rss(const std::string& xml)
 {
   namespace pt = boost::property_tree;
   // property tree we will use to store RSS tree results in
@@ -295,13 +295,13 @@ public:
    */
   static rss_item* from_tree(const ptree& tree, rss_item* item);
 
-  const std::string& title() const { return title_; }
-  const std::string& link() const { return link_; }
-  const std::string& img_src() const { return img_src_; }
-  const std::string& img_title() const { return img_title_; }
-  const std::string& img_alt() const { return img_alt_; }
-  const std::string& pub_date() const { return pub_date_;}
-  const std::string& guid() const { return guid_; }
+  const auto& title() const noexcept { return title_; }
+  const auto& link() const noexcept { return link_; }
+  const auto& img_src() const noexcept { return img_src_; }
+  const auto& img_title() const noexcept { return img_title_; }
+  const auto& img_alt() const noexcept { return img_alt_; }
+  const auto& pub_date() const noexcept { return pub_date_;}
+  const auto& guid() const noexcept { return guid_; }
 
 private:
   std::string title_;
