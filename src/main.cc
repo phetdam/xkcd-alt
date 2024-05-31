@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <exception>
+#include <functional>
 #include <iostream>
 #include <string>
 
@@ -26,6 +27,8 @@ namespace {
 
 /**
  * Struct holding parsed command-line options.
+ *
+ * @todo Consider making this extern for later testing.
  *
  * @param one_line Flag to indicate if output should be printed on one line
  * @param previous Number of XKCD strips to go back from today's strip
@@ -142,18 +145,29 @@ cliopts extract_args(int argc, char* argv[])
 #endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 }
 
-}  // namespace
-
-int main(int argc, char* argv[])
+/**
+ * `pdxka` CLI tool program main.
+ *
+ * This provides a hook for mocking in tests to avoid an actual network call.
+ *
+ * @todo Consider making this `extern` and C++ified for later testing.
+ *
+ * @param argc `argc` argument count from `main()`
+ * @param argv `argv` argument vector from `main()
+ * @param rss_factory Callable providing the `curl_result` to parse
+ * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
+ */
+int pdxka_program_main(
+  int argc,
+  char* argv[],
+  const std::function<pdxka::curl_result(const cliopts&)>& rss_factory)
 {
   // parse and extract command-line arguments, printing error messages or
   // information output and exiting appropriately as necessary
   auto opts = extract_args(argc, argv);
-  // get XKCD RSS as a string using cURL
-  const auto res = pdxka::get_rss(
-    pdxka::curl_option{CURLOPT_VERBOSE, static_cast<long>(opts.verbose)},
-    pdxka::curl_option{CURLOPT_SSL_VERIFYPEER, static_cast<long>(!opts.insecure)}
-  );
+  // get XKCD RSS as a string using cURL. this may be an actual network call,
+  // e.g. using pdxka::get_rss, or some mocked output (for testing)
+  auto res = rss_factory(opts);
   // if request error, just print the reason and exit
   PDXKA_CURL_NOT_OK(res.status) {
     std::cerr << "cURL error " << res.status << ": " << res.reason << std::endl;
@@ -190,4 +204,23 @@ int main(int argc, char* argv[])
   // last newline + finally flush the buffer
   std::cout << std::endl;
   return EXIT_SUCCESS;
+}
+
+}  // namespace
+
+int main(int argc, char* argv[])
+{
+  return
+    pdxka_program_main(
+      argc,
+      argv,
+      [](const cliopts& opts)
+      {
+        // verbosity and SSL verification determined via CLI options
+        return pdxka::get_rss(
+          pdxka::curl_option<long>{CURLOPT_VERBOSE, opts.verbose},
+          pdxka::curl_option<long>{CURLOPT_SSL_VERIFYPEER, !opts.insecure}
+        );
+      }
+    );
 }
