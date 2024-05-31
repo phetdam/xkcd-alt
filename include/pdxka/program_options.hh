@@ -1,7 +1,7 @@
 /**
  * @file program_options.hh
  * @author Derek Huang
- * @brief Parse the CLI options using Boost.ProgramOptions
+ * @brief C++ header for pdxka CLI option parsing
  * @copyright MIT License
  */
 
