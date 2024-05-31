@@ -14,8 +14,9 @@
 
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/property_tree/ptree.hpp>
-
 #include <curl/curl.h>
+
+#include "pdxka/common.h"
 
 namespace pdxka {
 
@@ -50,7 +51,7 @@ std::size_t curl_writer(
     for (; n < n_items; n++) sstream->put(incoming[n]);
   }
   catch (...) {
-    std::cerr << "curl_writer: " <<
+    std::cerr << PDXKA_PRETTY_FUNCTION_NAME << ": " <<
       boost::current_exception_diagnostic_information() << std::endl;
     return n;
   }
