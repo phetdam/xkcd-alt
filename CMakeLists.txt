@@ -35,6 +35,8 @@ set(PDXKA_PROGNAME xkcd-alt)
 
 # use Boost.ProgramOptions for CLI argument parsing
 option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
+# support library built as shared by default
+option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 # build tests. defaults to ON since you should build tests
 option(BUILD_TESTS "Build project tests" ON)
 
@@ -48,6 +50,12 @@ endif()
 # build type maintains case
 set(PDXKA_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 message(STATUS "Config: ${PDXKA_BUILD_TYPE}")
+# indicate pdxka library build type
+if(BUILD_SHARED_LIBS)
+    message(STATUS "Library build: Shared")
+else()
+    message(STATUS "Library build: Static")
+endif()
 
 # output artifacts into top-level directory. multi-config generators like
 # Visual Studio will have an extra per-config subdirectory for the build type
