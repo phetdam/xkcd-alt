@@ -70,6 +70,8 @@ curl_result get_rss(const std::string& url, const curl_option<Ts>&... options)
   std::string reason;
   std::stringstream stream;
   // global cURL session init
+  // FIXME: having this here means that get_rss is not thread-safe. it's easy
+  // to make a thread-safe initialization function that uses static init
   status = curl_global_init(CURL_GLOBAL_DEFAULT);
   PDXKA_CURL_ERR_HANDLER(status, reason, "Global init error", clean_global);
   // if good, init the cURL "easy" session
