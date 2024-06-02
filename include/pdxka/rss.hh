@@ -257,7 +257,10 @@ public:
    *
    * @param tree `const ptree&` tree containing XKCD RSS item data
    */
-  rss_item(const ptree& tree) { from_tree(tree, this); }
+  rss_item(const ptree& tree)
+  {
+    from_tree(tree, this);
+  }
 
   /**
    * Return new `rss_item` from Boost `ptree` containing XKCD RSS item data.
@@ -295,12 +298,45 @@ public:
    */
   static rss_item* from_tree(const ptree& tree, rss_item* item);
 
+  /**
+   * Return the title of the XKCD comic.
+   */
   const auto& title() const noexcept { return title_; }
+
+  /**
+   * Return the URL link to the XKCD comic.
+   */
   const auto& link() const noexcept { return link_; }
+
+  /**
+   * Return the URL to the XKCD comic's image source.
+   */
   const auto& img_src() const noexcept { return img_src_; }
+
+  /**
+   * Return the XKCD comic's image title.
+   *
+   * @note This is typically the same as the image's alt text.
+   */
   const auto& img_title() const noexcept { return img_title_; }
+
+  /**
+   * Return the XKCD comic's image alt text.
+   */
   const auto& img_alt() const noexcept { return img_alt_; }
+
+  /**
+   * Return the XKCD comic's publication date string.
+   *
+   * Typically the format is something like `Fri, 31 May 2024 04:00:00 -0000`.
+   */
   const auto& pub_date() const noexcept { return pub_date_;}
+
+  /**
+   * Return the XKCD comic's globally unique identifier.
+   *
+   * @note This is typically the same as the comic's URL link.
+   */
   const auto& guid() const noexcept { return guid_; }
 
 private:
