@@ -5,6 +5,9 @@
  * @copyright MIT License
  */
 
+#include <curl/curl.h>
+
+#include "pdxka/curl.hh"
 #include "pdxka/program_main.hh"
 #include "pdxka/rss.hh"
 

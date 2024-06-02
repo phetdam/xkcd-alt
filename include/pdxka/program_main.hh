@@ -10,7 +10,7 @@
 
 #include <functional>
 
-#include "pdxka/rss.hh"
+#include "pdxka/curl.hh"
 
 namespace pdxka {
 

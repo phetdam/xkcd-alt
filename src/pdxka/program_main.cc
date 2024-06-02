@@ -12,9 +12,11 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <utility>
 
 #include <boost/exception/diagnostic_information.hpp>
 
+#include "pdxka/curl.hh"
 #include "pdxka/features.h"
 #include "pdxka/program_options.hh"
 #include "pdxka/rss.hh"
