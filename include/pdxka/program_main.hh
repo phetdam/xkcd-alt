@@ -34,8 +34,6 @@ struct cliopts {
  *
  * This provides a hook for mocking in tests to avoid an actual network call.
  *
- * @todo Consider making this `extern` and C++ified for later testing.
- *
  * @param argc `argc` argument count from `main()`
  * @param argv `argv` argument vector from `main()
  * @param rss_factory Callable providing the `curl_result` to parse
