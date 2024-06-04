@@ -12,9 +12,7 @@
 #include <sstream>
 #include <string>
 
-#include <boost/exception/diagnostic_information.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <curl/curl.h>
 
 #include "pdxka/common.h"
 
