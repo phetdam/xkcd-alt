@@ -33,95 +33,15 @@ inline const auto& rss_url()
   return url;
 }
 
-namespace detail {
-
-/**
- * cURL callback function used to write received data.
- *
- * Returns the number of characters written, where if the returned value is
- * less than `n_items`, cURL will interpret this as an error and halt.
- *
- * @param incoming `char*` buffer of data read by cURL, not `NULL`-terminated
- * @param item_size `std::size_t` size of char items, always 1 (unused)
- * @param n_items `std::size_t` number of chars in buffer to write
- * @param stream `void*` address of a `std::stringstream` to put chars in
- */
-std::size_t curl_writer(
-  char* incoming,
-  std::size_t /* item_size */,
-  std::size_t n_items,
-  void* stream) noexcept;
-
-}  // namespace detail
-
 /**
  * Get the latest XKCD RSS XML.
- *
- * @param url `const std::string&` URL used for XKCD RSS, i.e. `rss_url()`
- * @param options `curl_option<T>` additional cURL options to set
- */
-template <typename... Ts>
-curl_result get_rss(const std::string& url, const curl_option<Ts>&... options)
-{
-  // cURL session handle and global error status
-  CURL *handle;
-  CURLcode status;
-  // reason the cURL request has errored out + stream to hold response body
-  std::string reason;
-  std::stringstream stream;
-  // global cURL session init
-  // FIXME: having this here means that get_rss is not thread-safe. it's easy
-  // to make a thread-safe initialization function that uses static init
-  status = curl_global_init(CURL_GLOBAL_DEFAULT);
-  PDXKA_CURL_ERR_HANDLER(status, reason, "Global init error", clean_global);
-  // if good, init the cURL "easy" session
-  handle = curl_easy_init();
-  // on error, clean up and exit
-  if (!handle) {
-    reason = "curl_easy_init errored";
-    goto clean_easy;
-  }
-  // set cURL error buffer, callback writer function, and the write target
-  char errbuf[CURL_ERROR_SIZE];
-  curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, &errbuf);
-  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, detail::curl_writer);
-  curl_easy_setopt(handle, CURLOPT_WRITEDATA, &stream);
-  // set URL to make GET request to (errors if no heap space left)
-  status = curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // set cURL options (only if exit status is good) using fold
-  (
-    [&]
-    {
-      PDXKA_CURL_OK(status)
-        status = curl_easy_setopt(handle, options.name(), options.value());
-    }(),
-    ...
-  );
-  // check last eror and clean up if necessary
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // perform GET request
-  status = curl_easy_perform(handle);
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, clean_easy);
-  // clean up both "easy" and global sessions
-clean_easy:
-  curl_easy_cleanup(handle);
-clean_global:
-  curl_global_cleanup();
-  return {status, reason, request_type::GET, stream.str()};
-}
-
-/**
- * Get the latest XKCD RSS XML.
- *
- * Uses `rss_url()` as the URL to the XKCD RSS XML.
  *
  * @param options `curl_option<T>` additional cURL options to set
  */
 template <typename... Ts>
 inline curl_result get_rss(curl_option<Ts>... options)
 {
-  return get_rss(rss_url(), options...);
+  return curl_get(rss_url(), options...);
 }
 
 /**

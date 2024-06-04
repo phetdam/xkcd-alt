@@ -20,46 +20,6 @@
 
 namespace pdxka {
 
-namespace detail {
-
-/**
- * cURL callback function used to write received data.
- *
- * Returns the number of characters written, where if the returned value is
- * less than `n_items`, cURL will interpret this as an error and halt.
- *
- * @param incoming `char*` buffer of data read by cURL, not `NULL`-terminated
- * @param item_size `std::size_t` size of char items, always 1 (unused)
- * @param n_items `std::size_t` number of chars in buffer to write
- * @param stream `void*` address of a `std::stringstream` to put chars in
- */
-std::size_t curl_writer(
-  char* incoming,
-  std::size_t /* item_size */,
-  std::size_t n_items,
-  void* stream) noexcept
-{
-  // error if either incoming buffer or stream are NULL
-  if (!incoming || !stream)
-    return 0;
-  // counter/number of items read before exception
-  std::size_t n = 0;
-  // since incoming is not NULL-terminated, just put each char into stream. C
-  // code doesn't know how to handle exceptions, so wrap in try/catch
-  try {
-    std::stringstream* sstream = static_cast<std::stringstream*>(stream);
-    for (; n < n_items; n++) sstream->put(incoming[n]);
-  }
-  catch (...) {
-    std::cerr << PDXKA_PRETTY_FUNCTION_NAME << ": " <<
-      boost::current_exception_diagnostic_information() << std::endl;
-    return n;
-  }
-  return n_items;
-}
-
-}  // namespace detail
-
 /**
  * Populate `rss_item` data from Boost `ptree` containing XKCD RSS item data.
  *

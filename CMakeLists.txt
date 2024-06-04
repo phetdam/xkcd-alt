@@ -33,12 +33,14 @@ project(
 # executable name
 set(PDXKA_PROGNAME xkcd-alt)
 
-# use Boost.ProgramOptions for CLI argument parsing
-option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
 # support library built as shared by default
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 # build tests. defaults to ON since you should build tests
 option(BUILD_TESTS "Build project tests" ON)
+# enable AddressSanitizer
+option(ENABLE_ASAN "Enable AddressSanitizer instrumentation" OFF)
+# use Boost.ProgramOptions for CLI argument parsing
+option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
 
 include(CTest)
 
@@ -55,6 +57,13 @@ if(BUILD_SHARED_LIBS)
     message(STATUS "Library build: Shared")
 else()
     message(STATUS "Library build: Static")
+endif()
+
+# AddressSanitizer on or off
+if(ENABLE_ASAN)
+    message(STATUS "AddressSanitizer: Enabled")
+else()
+    message(STATUS "AddressSanitizer: Disabled")
 endif()
 
 # output artifacts into top-level directory. multi-config generators like
@@ -93,6 +102,10 @@ if(MSVC)
 else()
     # -O0 is default
     add_compile_options(-Wall)
+    if(ENABLE_ASAN)
+        add_compile_options(-fsanitize=address)
+        add_link_options(-fsanitize=address)
+    endif()
 endif()
 
 # cURL and Boost minimum versions
