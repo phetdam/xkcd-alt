@@ -144,8 +144,8 @@ inline void init_curl(long flags = CURL_GLOBAL_DEFAULT)
       PDXKA_CURL_NOT_OK(status = curl_global_init(flags))
         throw std::runtime_error{
           PDXKA_PRETTY_FUNCTION_NAME +
-          std::string{": libcurl initialization failed. CURLcode: "} +
-          std::to_string(status)
+          std::string{": libcurl initialization failed: "} +
+          curl_easy_strerror(status)
         };
     }
 
