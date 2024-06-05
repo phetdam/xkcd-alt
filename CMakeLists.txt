@@ -178,6 +178,9 @@ cmake_path(
 )
 message(STATUS "Generated ${PDXKA_VERSION_HEADER_RELATIVE}")
 
+# test or other data directory root
+set(PDXKA_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
+
 add_subdirectory(src)
 
 if(BUILD_TESTS)

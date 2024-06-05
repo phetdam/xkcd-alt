@@ -15,6 +15,11 @@
  */
 #define PDXKA_BINARY_DIR "@PDXKA_BINARY_DIR@"
 
+/**
+ * Data directory root containing test and other data files.
+ */
+#define PDXKA_DATA_DIR "@PDXKA_DATA_DIR@"
+
 namespace pdxka {
 namespace testing {
 
@@ -24,6 +29,15 @@ namespace testing {
 inline const auto& binary_dir()
 {
   static boost::filesystem::path dir{PDXKA_BINARY_DIR};
+  return dir;
+}
+
+/**
+ * Return data output directory as a Boost path object.
+ */
+inline const auto& data_dir()
+{
+  static boost::filesystem::path dir{PDXKA_DATA_DIR};
   return dir;
 }
 
