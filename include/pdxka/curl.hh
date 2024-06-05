@@ -320,7 +320,7 @@ curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
     }(),
     ...
   );
-  // check last eror and clean up if necessary
+  // check last error and clean up if necessary
   PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, done);
   // perform GET request
   status = curl_easy_perform(handle);
