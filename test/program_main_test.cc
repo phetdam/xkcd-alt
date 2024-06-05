@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(mock_program_main_default)
   {
     pdxka::testing::stream_diverter out_diverter{std::cout, out};
     pdxka::testing::stream_diverter err_diverter{std::cerr, err_out};
-    ret = pdxka::program_main(sizeof argv / sizeof *argv, argv, rss_mocker{});
+    ret = pdxka::program_main(argv, rss_mocker{});
   }
   BOOST_TEST_REQUIRE(ret == EXIT_SUCCESS, "exit failure. error: " << err_out.str());
 }
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(mock_program_main_back2)
   {
     pdxka::testing::stream_diverter out_diverter{std::cout, out};
     pdxka::testing::stream_diverter err_diverter{std::cerr, err_out};
-    ret = pdxka::program_main(sizeof argv / sizeof *argv, argv, rss_mocker{});
+    ret = pdxka::program_main(argv, rss_mocker{});
   }
   BOOST_TEST_REQUIRE(ret == EXIT_SUCCESS, "exit failure. error: " << err_out.str());
 }
