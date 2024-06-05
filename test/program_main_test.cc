@@ -38,7 +38,7 @@ struct rss_mocker {
     std::string rss_str;
     for (std::string line; std::getline(fs, line); )
       rss_str += line;
-    // return new curl_result
+    // return new curl_result. move to avoid copy of rss_str
     return {CURLE_OK, "", pdxka::request_type::get, std::move(rss_str)};
   }
 };
