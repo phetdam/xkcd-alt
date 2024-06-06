@@ -32,19 +32,21 @@ struct cliopts {
 };
 
 /**
+ * Type alias for a callable that returns the XKCD RSS XML to parse.
+ */
+using rss_provider = std::function<curl_result(const cliopts&)>;
+
+/**
  * `pdxka` CLI tool program main.
  *
  * This provides a hook for mocking in tests to avoid an actual network call.
  *
  * @param argc `argc` argument count from `main()`
  * @param argv `argv` argument vector from `main()`
- * @param rss_factory Callable providing the `curl_result` to parse
+ * @param provider Callable providing the RSS XML to parse
  * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
  */
-int program_main(
-  int argc,
-  char* argv[],
-  const std::function<curl_result(const cliopts&)>& rss_factory);
+int program_main(int argc, char* argv[], const rss_provider& provider);
 
 /**
  * `pdxka` CLI tool program main convenience overload.
@@ -54,17 +56,15 @@ int program_main(
  * @tparam N Argument count deduced from `argv`
  *
  * @param argv `argv` argument vector from `main()`
- * @param rss_factory Callable providing the `curl_result` to parse
+ * @param provider Callable providing the RSS XML to parse
  * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
  */
 template <std::size_t N>
-inline auto program_main(
-  char* (&argv)[N],
-  const std::function<curl_result(const cliopts&)>& rss_factory)
+inline auto program_main(char* (&argv)[N], const rss_provider& provider)
 {
   // N must not exceed int max
   static_assert(N < std::numeric_limits<int>::max());
-  return program_main(static_cast<int>(N), argv, rss_factory);
+  return program_main(static_cast<int>(N), argv, provider);
 }
 
 }  // namespace pdxka
