@@ -37,7 +37,7 @@ struct cliopts {
  * This provides a hook for mocking in tests to avoid an actual network call.
  *
  * @param argc `argc` argument count from `main()`
- * @param argv `argv` argument vector from `main()
+ * @param argv `argv` argument vector from `main()`
  * @param rss_factory Callable providing the `curl_result` to parse
  * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
  */
@@ -53,7 +53,7 @@ int program_main(
  *
  * @tparam N Argument count deduced from `argv`
  *
- * @param argv `argv` argument vector from `main()
+ * @param argv `argv` argument vector from `main()`
  * @param rss_factory Callable providing the `curl_result` to parse
  * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
  */
