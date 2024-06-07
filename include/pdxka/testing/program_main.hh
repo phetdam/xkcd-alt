@@ -109,7 +109,7 @@ private:
     (
       [this, args]
       {
-        std::memcpy(std::get<Is>(args_), args, Ns);
+        std::memcpy(std::get<Is>(args_), args, Ns_);
         argv_[Is] = std::get<Is>(args_);
       }()
       ,
