@@ -12,6 +12,7 @@
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <ostream>
 #include <tuple>
 #include <utility>
 
@@ -95,21 +96,22 @@ private:
   /**
    * Copy all null-terminated buffers into this object's internal buffers.
    *
-   * @tparam Ns_... Char array sizes
-   * @tparam Is... Sequential index values
+   * @tparam Is... Sequential index values `0` through `sizeof...(Ns) - 1`
    *
    * @param idxs Index sequence to deduce index parameter pack from
    * @param args... Parameter pack of null-terminated char arrays
    */
-  template <std::size_t... Ns_, std::size_t... Is>
+  template <std::size_t... Is>
   void assign_buffers(
-    std::index_sequence<Is...> /*idxs*/, const char (&...args)[Ns_]) noexcept
+    std::index_sequence<Is...> /*idxs*/, const char (&...args)[Ns]) noexcept
   {
-    static_assert(sizeof...(Ns_) == sizeof...(Is));
+    // minimal check that packs are the same size
+    static_assert(sizeof...(Is) == sizeof...(Ns));
+    // fold to copy buffers + set pointers in argv_
     (
       [this, args]
       {
-        std::memcpy(std::get<Is>(args_), args, Ns_);
+        std::memcpy(std::get<Is>(args_), args, Ns);
         argv_[Is] = std::get<Is>(args_);
       }()
       ,
@@ -117,6 +119,64 @@ private:
     );
   }
 };
+
+namespace detail {
+
+/**
+ * Write an `argument_vector` to a stream.
+ *
+ * @tparam I First index value (must be zero)
+ * @tparam Is... Sequential index values `1` through `sizeof...(Ns) - 1`
+ * @tparam N First null-terminated char array size
+ * @tparam Ns... Subsequent null-terminated char array sizes
+ *
+ * @param out Stream to write to
+ * @param idxs Index sequence to deduce index parameter pack from
+ * @param argv Argument vector constructed from null-terminated char arrays
+ */
+template <std::size_t I, std::size_t... Is, std::size_t N, std::size_t... Ns>
+auto& write(
+  std::ostream& out,
+  std::index_sequence<I, Is...> /*idxs*/,
+  argument_vector<N, Ns...>& argv)
+{
+  // minimal check that packs are the same size
+  static_assert(I == 0);
+  static_assert(sizeof...(Is) == sizeof...(Ns));
+  // reference to argv's internal tuple
+  auto& buffers = argv.args();
+  // print argc + argv
+  out << "argc=" << argv.argc() << ", argv=[\"" << std::get<I>(buffers) << "\"";
+  (
+    [&out, &buffers]
+    {
+      out << ", \"" << std::get<Is>(buffers) << "\"";
+    }()
+    ,
+    ...
+  );
+  // done, just need to close bracket
+  return out << "]";
+}
+
+}  // namespace detail
+
+/**
+ * `operator<<` overload for writing to a stream.
+ *
+ * This is also convenient for use with Boost.Test in lieu of using the
+ * `boost_test_print_type` customization point provided.
+ *
+ * @tparam Ns... Null-terminated char array sizes
+ *
+ * @param out Stream to write to
+ * @param argv Argument vector constructed from null-terminated char arrays
+ */
+template <std::size_t... Ns>
+inline auto& operator<<(std::ostream& out, argument_vector<Ns...>& argv)
+{
+  return detail::write(out, std::make_index_sequence<sizeof...(Ns)>{}, argv);
+}
 
 }  // namespace testing
 
