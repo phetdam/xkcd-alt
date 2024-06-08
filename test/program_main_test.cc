@@ -13,8 +13,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <utility>
 
+#include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 #include <curl/curl.h>
 
@@ -50,30 +52,56 @@ struct rss_mocker {
 // XKCD alt text program tests
 BOOST_AUTO_TEST_SUITE(xkcd_alt)
 
-/**
- * Run the program main using the RSS mocker with no CLI arguments.
- */
-BOOST_AUTO_TEST_CASE(mock_program_main_default)
-{
-  pt::argument_vector argv{PDXKA_PROGNAME};
-  // run program main with RSS mocker, redirecting output to stringstream
-  std::stringstream out;
-  std::stringstream err_out;
-  int ret;
-  {
-    pt::stream_diverter out_diverter{std::cout, out};
-    pt::stream_diverter err_diverter{std::cerr, err_out};
-    ret = pdxka::program_main(argv, rss_mocker{});
-  }
-  BOOST_TEST_REQUIRE(ret == EXIT_SUCCESS, "exit failure. error: " << err_out.str());
-}
+namespace {
 
 /**
- * Run the program main using the RSS mocker going back 2 strips.
+ * Callable object that returns the first `mock_program_main` input.
+ *
+ * This provides no arguments except the program name.
  */
-BOOST_AUTO_TEST_CASE(mock_program_main_back2)
+struct argv_type_1 {
+  auto operator()() const
+  {
+    return pt::argument_vector{PDXKA_PROGNAME};
+  }
+};
+
+/**
+ * Callable object that returns the second `mock_program_main` input.
+ *
+ * This requests an XKCD strip alt text 2 days previous from today.
+ */
+struct argv_type_2 {
+  auto operator()() const
+  {
+    return pt::argument_vector{PDXKA_PROGNAME, "-b2"};
+  }
+};
+
+/**
+ * Callable object that return the third `mock_program_main` input.
+ *
+ * This requests an XKCD strip alt text 3 days previous from today on one line.
+ */
+struct argv_type_3 {
+  auto operator()() const
+  {
+    return pt::argument_vector{PDXKA_PROGNAME, "-o", "-b3"};
+  }
+};
+
+/**
+ * Input type tuple for the `mock_program_main` test.
+ */
+using argv_type_tuple = std::tuple<argv_type_1, argv_type_2, argv_type_3>;
+
+}  // namespace
+
+/**
+ * Run the program main using the RSS mocker on different CLI arguments.
+ */
+BOOST_AUTO_TEST_CASE_TEMPLATE(mock_program_main, T, argv_type_tuple)
 {
-  pt::argument_vector argv{PDXKA_PROGNAME, "-b2"};
   // run program main with RSS mocker, redirecting output to stringstream
   std::stringstream out;
   std::stringstream err_out;
@@ -81,9 +109,12 @@ BOOST_AUTO_TEST_CASE(mock_program_main_back2)
   {
     pt::stream_diverter out_diverter{std::cout, out};
     pt::stream_diverter err_diverter{std::cerr, err_out};
-    ret = pdxka::program_main(argv, rss_mocker{});
+    ret = pdxka::program_main(T{}(), rss_mocker{});
   }
-  BOOST_TEST_REQUIRE(ret == EXIT_SUCCESS, "exit failure. error: " << err_out.str());
+  BOOST_TEST_REQUIRE(
+    ret == EXIT_SUCCESS,
+    "exit with nonzero status " << ret << ". error: " << err_out.str()
+  );
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // xkcd_alt

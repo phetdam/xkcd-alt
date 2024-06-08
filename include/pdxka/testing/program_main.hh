@@ -14,6 +14,7 @@
 #include <limits>
 #include <ostream>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #include "pdxka/program_main.hh"
@@ -178,6 +179,30 @@ inline auto& operator<<(std::ostream& out, argument_vector<Ns...>& argv)
   return detail::write(out, std::make_index_sequence<sizeof...(Ns)>{}, argv);
 }
 
+/**
+ * Traits struct to determine if a type is an `argument_vector` specialization.
+ *
+ * @tparam T type
+ */
+template <typename T>
+struct is_argument_vector : std::false_type {};
+
+/**
+ * Partial specialization when the type is an `argument_vector` specialization.
+ *
+ * @tparam Ns... Null-terminate char array sizes
+ */
+template <std::size_t... Ns>
+struct is_argument_vector<argument_vector<Ns...>> : std::true_type {};
+
+/**
+ * Helper value to determine if a type is an `argument_vector` specialization.
+ *
+ * @tparam T type
+ */
+template <typename T>
+inline constexpr bool is_argument_vector_v = is_argument_vector<T>::value;
+
 }  // namespace testing
 
 /**
@@ -191,9 +216,10 @@ inline auto& operator<<(std::ostream& out, argument_vector<Ns...>& argv)
  * @param provider Callable providing the RSS XML to parse
  * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
  */
-template <std::size_t... Ns>
-inline int program_main(
-  testing::argument_vector<Ns...>& argv, const rss_provider& provider)
+template <typename T>
+inline
+std::enable_if_t<testing::is_argument_vector_v<std::remove_reference_t<T>>, int>
+program_main(T&& argv, const rss_provider& provider)
 {
   return program_main(argv.argc(), argv.argv(), provider);
 }
