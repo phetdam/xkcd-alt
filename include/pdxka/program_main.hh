@@ -8,9 +8,7 @@
 #ifndef PDXKA_PROGRAM_MAIN_HH_
 #define PDXKA_PROGRAM_MAIN_HH_
 
-#include <cstdint>
 #include <functional>
-#include <limits>
 
 #include "pdxka/curl.hh"
 
@@ -47,25 +45,6 @@ using rss_provider = std::function<curl_result(const cliopts&)>;
  * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
  */
 int program_main(int argc, char* argv[], const rss_provider& provider);
-
-/**
- * `pdxka` CLI tool program main convenience overload.
- *
- * This facilitates testing by removing an explicit `argc` specification.
- *
- * @tparam N Argument count deduced from `argv`
- *
- * @param argv `argv` argument vector from `main()`
- * @param provider Callable providing the RSS XML to parse
- * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
- */
-template <std::size_t N>
-inline auto program_main(char* (&argv)[N], const rss_provider& provider)
-{
-  // N must not exceed int max
-  static_assert(N < std::numeric_limits<int>::max());
-  return program_main(static_cast<int>(N), argv, provider);
-}
 
 }  // namespace pdxka
 
