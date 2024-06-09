@@ -313,7 +313,7 @@ curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
   PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, done);
   // set cURL options (only if exit status is good) using fold
   (
-    [&]
+    [&status, &handle, &options]
     {
       PDXKA_CURL_OK(status)
         status = curl_easy_setopt(handle, options.name(), options.value());
