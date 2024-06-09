@@ -23,10 +23,10 @@ namespace pdxka {
  * @param insecure Flag to allow skip cURL verification of server SSL cert
  */
 struct cliopts {
-  const bool one_line;
-  const unsigned int previous;
-  const bool verbose;
-  const bool insecure;
+  bool one_line;
+  unsigned int previous;
+  bool verbose;
+  bool insecure;
 };
 
 /**

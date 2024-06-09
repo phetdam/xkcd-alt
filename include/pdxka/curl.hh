@@ -62,7 +62,7 @@ namespace pdxka {
 enum class request_type { get, post };
 
 /**
- * Immutable POD class holding cURL HTTP[S] result.
+ * Struct holding cURL HTTP[S] result.
  *
  * @param status `CURLcode` cURL status code
  * @param reason `std::string` holding contents of last cURL error buffer
@@ -70,10 +70,10 @@ enum class request_type { get, post };
  * @param payload `std::string` HTTP[S] response body
  */
 struct curl_result {
-  const CURLcode status;
-  const std::string reason;
-  const request_type request;
-  const std::string payload;
+  CURLcode status;
+  std::string reason;
+  request_type request;
+  std::string payload;
 };
 
 /**
