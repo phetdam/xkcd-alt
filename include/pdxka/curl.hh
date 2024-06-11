@@ -212,6 +212,7 @@ public:
    */
   auto& operator=(curl_handle&& other) noexcept
   {
+    destroy_handle();
     handle_ = other.handle_;
     other.handle_ = nullptr;
     return *this;
@@ -224,8 +225,7 @@ public:
    */
   ~curl_handle()
   {
-    // if handle_ is nullptr nothing is done
-    curl_easy_cleanup(handle_);
+    destroy_handle();
   }
 
   /**
@@ -246,6 +246,15 @@ public:
 
 private:
   CURL* handle_;
+
+  /**
+   * Clean up the easy handle if it is still being used.
+   */
+  void destroy_handle() noexcept
+  {
+    // if handle_ is nullptr nothing is done
+    curl_easy_cleanup(handle_);
+  }
 };
 
 namespace detail {
