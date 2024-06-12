@@ -31,21 +31,23 @@ namespace pt = pdxka::testing;
 namespace {
 
 /**
- * Callable mocking a network call retrieving the XKCD RSS XML content.
+ * Mock a network call retrieving the XKCD RSS XML content.
+ *
+ * This returns the XKCD RSS page retrieved on 2024/06/04.
+ *
+ * @param opts Ignored command-line options struct
  */
-struct rss_mocker {
-  pdxka::curl_result operator()(const pdxka::cliopts& /*opts*/) const
-  {
-    // open stream to XML file content
-    std::ifstream fs{(pt::data_dir() / "xkcd-rss-20240604.xml").string()};
-    // read contents into string
-    std::string rss_str;
-    for (std::string line; std::getline(fs, line); )
-      rss_str += line;
-    // return new curl_result. move to avoid copy of rss_str
-    return {CURLE_OK, "", pdxka::request_type::get, std::move(rss_str)};
-  }
-};
+pdxka::curl_result mock_rss_get(const pdxka::cliopts& /*opts*/)
+{
+  // open stream to XML file content
+  std::ifstream fs{(pt::data_dir() / "xkcd-rss-20240604.xml").string()};
+  // read contents into string
+  std::string rss_str;
+  for (std::string line; std::getline(fs, line); )
+    rss_str += line;
+  // return new curl_result. move to avoid copy of rss_str
+  return {CURLE_OK, "", pdxka::request_type::get, std::move(rss_str)};
+}
 
 }  // namespace
 
@@ -109,7 +111,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(mock_program_main, T, argv_type_tuple)
   {
     pt::stream_diverter out_diverter{std::cout, out};
     pt::stream_diverter err_diverter{std::cerr, err_out};
-    ret = pdxka::program_main(T{}(), rss_mocker{});
+    ret = pdxka::program_main(T{}(), mock_rss_get);
   }
   BOOST_TEST_REQUIRE(
     ret == EXIT_SUCCESS,
