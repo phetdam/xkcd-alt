@@ -320,14 +320,18 @@ curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
   // set URL to make GET request to (errors if no heap space left)
   status = curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
   PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, done);
-  // set cURL options (only if exit status is good) using fold
+  // set cURL options (only if exit status is good) using fold. we break early
+  // if the status ends up being bad at any point
   (
     [&status, &handle, &options]
     {
-      PDXKA_CURL_OK(status)
+      PDXKA_CURL_OK(status) {
         status = curl_easy_setopt(handle, options.name(), options.value());
-    }(),
-    ...
+        return true;
+      }
+      // not ok, break early
+      return false;
+    }() && ...
   );
   // check last error and clean up if necessary
   PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, done);

@@ -86,10 +86,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # then hand-rolled implementation (WIP) is to be used. the goal is to get off
 # Boost.ProgramOptions so only Boost headers are needed.
 if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
-    message(STATUS "CLI options: Boost program_options")
-    # TODO: remove macro definition here and instead define to 1 or 0 in
-    # features.h generated from features.h.in
-    add_compile_definitions(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
+    message(STATUS "CLI options: Boost")
 else()
     message(STATUS "CLI options: Manual")
 endif()
@@ -114,6 +111,7 @@ set(PDXKA_BOOST_VERSION 1.71)
 # need to be able to make HTTPS request. note: CMake errors on Windows, as the
 # generated curl-config Bash script of course cannot be run by CMD
 find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
+message(STATUS "libcurl version: ${CURL_VERSION_STRING}")
 # compiled Boost components to search for
 set(PDXKA_BOOST_COMPONENTS "")
 # boost_program_options is compiled
@@ -141,6 +139,7 @@ if(PDXKA_BOOST_COMPONENTS)
 else()
     find_package(Boost ${PDXKA_BOOST_VERSION} REQUIRED)
 endif()
+message(STATUS "Boost version: ${Boost_VERSION_STRING}")
 
 # add include dir. use SYSTEM to suppress warnings from third-party libraries
 set(PDXKA_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
