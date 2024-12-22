@@ -42,28 +42,45 @@ option(ENABLE_ASAN "Enable AddressSanitizer instrumentation" OFF)
 # use Boost.ProgramOptions for CLI argument parsing
 option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
 
+# determine if generator is multi-config
+get_property(PDXKA_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(PDXKA_IS_MULTI_CONFIG)
+    message(STATUS "Generator config: Multi")
+else()
+    message(STATUS "Generator config: Single")
+endif()
+
 include(CTest)
 
 # default build type is Debug (single-config generators only)
+# FIXME: for multi-config generators this will be useless but is still used by
+# configure_file to generate version.h unfortunately
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 # build type maintains case
 set(PDXKA_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-message(STATUS "Config: ${PDXKA_BUILD_TYPE}")
+if(NOT PDXKA_IS_MULTI_CONFIG)
+    message(STATUS "Build config: ${PDXKA_BUILD_TYPE}")
+endif()
 # indicate pdxka library build type
 if(BUILD_SHARED_LIBS)
     message(STATUS "Library build: Shared")
 else()
     message(STATUS "Library build: Static")
 endif()
-
+# indicate if tests are being built
+if(BUILD_TESTS)
+    message(STATUS "Build tests: Yes")
+else()
+    message(STATUS "Build tests: No")
+endif()
 # AddressSanitizer on or off
 if(ENABLE_ASAN)
-    message(STATUS "AddressSanitizer: Enabled")
+    message(STATUS "Enable ASan: Yes")
 else()
-    message(STATUS "AddressSanitizer: Disabled")
+    message(STATUS "Enable ASan: No")
 endif()
 
 # output artifacts into top-level directory. multi-config generators like
@@ -105,13 +122,6 @@ else()
     endif()
 endif()
 
-# cURL and Boost minimum versions
-set(PDXKA_CURL_VERSION 7.68)
-set(PDXKA_BOOST_VERSION 1.71)
-# need to be able to make HTTPS request. note: CMake errors on Windows, as the
-# generated curl-config Bash script of course cannot be run by CMD
-find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
-message(STATUS "libcurl version: ${CURL_VERSION_STRING}")
 # compiled Boost components to search for
 set(PDXKA_BOOST_COMPONENTS "")
 # boost_program_options is compiled
@@ -131,6 +141,8 @@ list(SORT PDXKA_BOOST_COMPONENTS)
 string(REPLACE ";" " " PDXKA_BOOST_COMPONENTS_STRING "${PDXKA_BOOST_COMPONENTS}")
 message(STATUS "Boost components: ${PDXKA_BOOST_COMPONENTS_STRING}")
 # find Boost headers and any components
+set(PDXKA_BOOST_VERSION 1.71)
+# if compiled components are requested
 if(PDXKA_BOOST_COMPONENTS)
     find_package(
         Boost ${PDXKA_BOOST_VERSION} REQUIRED
@@ -140,6 +152,10 @@ else()
     find_package(Boost ${PDXKA_BOOST_VERSION} REQUIRED)
 endif()
 message(STATUS "Boost version: ${Boost_VERSION_STRING}")
+# need to be able to make HTTPS request. note: CMake errors on Windows, as the
+# generated curl-config Bash script of course cannot be run by CMD
+find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
+message(STATUS "libcurl version: ${CURL_VERSION_STRING}")
 
 # add include dir. use SYSTEM to suppress warnings from third-party libraries
 set(PDXKA_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -195,8 +211,5 @@ if(BUILD_TESTS)
         OUTPUT_VARIABLE PDXKA_TEST_PATHS_HEADER_RELATIVE
     )
     message(STATUS "Generated ${PDXKA_TEST_PATHS_HEADER_RELATIVE}")
-    message(STATUS "Build tests: Enabled")
     add_subdirectory(test)
-else()
-    message(STATUS "Build tests: Disabled")
 endif()

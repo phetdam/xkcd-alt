@@ -34,6 +34,8 @@
 
 /**
  * Project build type.
+ *
+ * @todo For multi-config generators this will be inaccurate.
  */
 #define PDXKA_BUILD_TYPE "@PDXKA_BUILD_TYPE@"
 
@@ -64,37 +66,37 @@ namespace pdxka {
 /**
  * Project version C++ string view.
  */
-inline const std::string_view version{PDXKA_VERSION_STRING};
+inline constexpr std::string_view version{PDXKA_VERSION_STRING};
 
 /**
  * Project version C string.
  */
-inline auto c_version = version.data();
+inline constexpr auto c_version = version.data();
 
 /*
  * Project build type C++ string view.
  */
-inline const std::string_view build_type{PDXKA_BUILD_TYPE};
+inline constexpr std::string_view build_type{PDXKA_BUILD_TYPE};
 
 /*
  * Project target system name C++ string view.
  */
-inline const std::string_view system_name{PDXKA_SYSTEM_NAME};
+inline constexpr std::string_view system_name{PDXKA_SYSTEM_NAME};
 
 /**
  * Project target system version C++ string view.
  */
-inline const std::string_view system_version{PDXKA_SYSTEM_VERSION};
+inline constexpr std::string_view system_version{PDXKA_SYSTEM_VERSION};
 
 /**
  * Project target system CPU architecture C++ string view.
  */
-inline const std::string_view system_arch{PDXKA_SYSTEM_ARCH};
+inline constexpr std::string_view system_arch{PDXKA_SYSTEM_ARCH};
 
 /**
  * Project binary executable name C++ string view.
  */
-inline const std::string_view progname{PDXKA_PROGNAME};
+inline constexpr std::string_view progname{PDXKA_PROGNAME};
 
 }  // namespace pdxka
 #endif  // __cplusplus
