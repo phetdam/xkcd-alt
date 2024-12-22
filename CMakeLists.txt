@@ -111,7 +111,23 @@ endif()
 # compiler-specific options
 if(MSVC)
     # /O2 added by CMake for Release, /O0 is default
-    add_compile_options(/Wall)
+    add_compile_options(
+        /Wall
+        # C4355: this used in base initializer list (pplwin.h)
+        /wd4355
+        # C4514: unreferenced inline function removed
+        /wd4514
+        # C4623: default ctor implicitly defined as deleted
+        /wd4623
+        # C4626: assignment operator implicitly defined as deleted
+        /wd4626
+        # C4820: padding added after data member
+        /wd4820
+        # C5027: move assignment operator implicitly defined as deleted
+        /wd5027
+        # C5045: compiler will insert Spectre mitigation with /QSpectre
+        /wd5045
+    )
 # options are also accepted by clang
 else()
     # -O0 is default
