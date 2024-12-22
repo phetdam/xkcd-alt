@@ -154,7 +154,7 @@ endif()
 message(STATUS "Boost version: ${Boost_VERSION_STRING}")
 # need to be able to make HTTPS request. note: CMake errors on Windows, as the
 # generated curl-config Bash script of course cannot be run by CMD
-find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
+find_package(CURL 7.68 REQUIRED COMPONENTS HTTPS)
 message(STATUS "libcurl version: ${CURL_VERSION_STRING}")
 
 # add include dir. use SYSTEM to suppress warnings from third-party libraries
