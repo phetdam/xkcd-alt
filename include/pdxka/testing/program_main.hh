@@ -39,7 +39,7 @@ public:
    *
    * This is guaranteed to be positive and not overflow a signed integer.
    */
-  static inline constexpr std::size_t n_args = sizeof...(Ns);
+  static constexpr auto n_args = sizeof...(Ns);
   static_assert(n_args > 0 && n_args < std::numeric_limits<int>::max());
 
   /**
@@ -63,7 +63,7 @@ public:
   /**
    * Return the number of arguments as a signed int for the `argv` of `main`.
    */
-  static constexpr int argc()
+  static constexpr int argc() noexcept
   {
     return n_args;
   }
@@ -116,8 +116,9 @@ private:
   void assign_buffers(
     std::index_sequence<Is...> /*idxs*/, const char (&...args)[Js]) noexcept
   {
-    // minimal check that packs are the same size
-    static_assert(sizeof...(Is) == sizeof...(Js));
+    // minimal check that packs are the appropriate size
+    static_assert(sizeof...(Is) == n_args);
+    static_assert(sizeof...(Js) == n_args);
     // fold to copy buffers + set pointers in argv_
     (
       [this, args]
