@@ -121,6 +121,10 @@ if(MSVC)
         /wd4623
         # C4626: assignment operator implicitly defined as deleted
         /wd4626
+        # C4710: function not inlined
+        /wd4710
+        # C4711: function selected for automatic inline expansion
+        /wd4711
         # C4820: padding added after data member
         /wd4820
         # C5027: move assignment operator implicitly defined as deleted

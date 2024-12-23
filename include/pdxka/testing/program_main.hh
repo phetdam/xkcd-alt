@@ -48,12 +48,17 @@ public:
    * Copies the contents of the null-terminated char arrays or string literals,
    * including the null terminators, to the tuple member of the object.
    *
+   * @todo This does not compile with Visual Studio 2022 as CTAD fails and for
+   *  some reason we get a C3520 complaining about Ns not being expanded.
+   *
    * @param args... Parameter pack of null-terminated character arrays
    */
+#ifndef _MSC_VER
   argument_vector(const char (&...args)[Ns]) noexcept
   {
     assign_buffers(std::make_index_sequence<n_args>{}, args...);
   }
+#endif  // _MSC_VER
 
   /**
    * Return the number of arguments as a signed int for the `argv` of `main`.
@@ -98,28 +103,53 @@ private:
    * Copy all null-terminated buffers into this object's internal buffers.
    *
    * @tparam Is... Sequential index values `0` through `sizeof...(Ns) - 1`
+   * @tparam Js... Null-terminated char array sizes
+   *
+   * @note The `Js...` pack is introduced to appease MSVC (it does not like a
+   *  "fixed" pack of non-type template parameters for some reason). For
+   *  GCC/Clang even under -pedantic using `Ns` is sufficient.
    *
    * @param idxs Index sequence to deduce index parameter pack from
    * @param args... Parameter pack of null-terminated char arrays
    */
-  template <std::size_t... Is>
+  template <std::size_t... Is, std::size_t... Js>
   void assign_buffers(
-    std::index_sequence<Is...> /*idxs*/, const char (&...args)[Ns]) noexcept
+    std::index_sequence<Is...> /*idxs*/, const char (&...args)[Js]) noexcept
   {
     // minimal check that packs are the same size
-    static_assert(sizeof...(Is) == sizeof...(Ns));
+    static_assert(sizeof...(Is) == sizeof...(Js));
     // fold to copy buffers + set pointers in argv_
     (
       [this, args]
       {
-        std::memcpy(std::get<Is>(args_), args, Ns);
+        std::memcpy(std::get<Is>(args_), args, Js);
         argv_[Is] = std::get<Is>(args_);
       }()
       ,
       ...
     );
   }
+
+  // factory function friend
+  template <std::size_t... Ns_>
+  friend auto make_argument_vector(const char (&...args)[Ns_]) noexcept;
 };
+
+// TODO: document better
+// creates an argument vector. this satisfies MSVC as CTAD oddly fails.
+template <std::size_t... Ns>
+auto make_argument_vector(const char (&...args)[Ns]) noexcept
+{
+// under MSVC, default-construct, and use friend access
+#if defined(_MSC_VER)
+  argument_vector<Ns...> vec;
+  vec.assign_buffers(std::make_index_sequence<sizeof...(Ns)>{}, args...);
+  return vec;
+// otherwise, just use ctor
+#else
+  return argument_vector<Ns...>(args...);
+#endif  // !defined(_MSC_VER)
+}
 
 namespace detail {
 

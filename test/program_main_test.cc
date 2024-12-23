@@ -64,7 +64,9 @@ namespace {
 struct argv_type_1 {
   auto operator()() const
   {
-    return pt::argument_vector{PDXKA_PROGNAME};
+    // note: argument_vector CTAD fails with MSVC. see testing/program_main.hh
+    // comments for why we have an extra function template for deduction
+    return pt::make_argument_vector(PDXKA_PROGNAME);
   }
 };
 
@@ -76,7 +78,7 @@ struct argv_type_1 {
 struct argv_type_2 {
   auto operator()() const
   {
-    return pt::argument_vector{PDXKA_PROGNAME, "-b2"};
+    return pt::make_argument_vector(PDXKA_PROGNAME, "-b2");
   }
 };
 
@@ -88,7 +90,7 @@ struct argv_type_2 {
 struct argv_type_3 {
   auto operator()() const
   {
-    return pt::argument_vector{PDXKA_PROGNAME, "-o", "-b3"};
+    return pt::make_argument_vector(PDXKA_PROGNAME, "-o", "-b3");
   }
 };
 
