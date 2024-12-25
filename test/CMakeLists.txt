@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 # TODO: for tests that check the output xkcd-alt it might be better to make
 # them simple CTest tests that we will check the output regex for pass/fail.
 # the version macros checked are known to CMake (since configure_file is used
-# to generate the headers) so testing inside C++ may be unnecessary
+# to generate the headers) so testing inside C++ may be unnecessary. see the
+# add_test() commands in ../src where we test xkcd-alt -V, etc.
 add_executable(
     pdxka_test
     curl_test.cc features_test.cc main.cc program_main_test.cc version_test.cc
@@ -26,6 +27,16 @@ if(WIN32)
         pdxka_test PRIVATE
         NOMINMAX BOOST_USE_WINDOWS_H WIN32_LEAN_AND_MEAN
     )
+    # note: need compilation with /permissive- because otherwise it appears as
+    # if when the program_main() overload in testing/program_main.hh takes an
+    # prvalue as the argv argument_vector, the argv.argv() (decays to char**)
+    # seems to return a pointer to an array of garbage despite the actual
+    # argument_vector tuple members being correctly set. this may be due to
+    # /Zc:rvalueCast being off by default. it also shows, however, that we need
+    # to have a proper copy ctor for argument_vector; the argv pointers will
+    # get invalidated if a copy is made and the original is discarded.
+    # TODO: remove /permissive- once we have a better copy ctor
+    target_compile_options(pdxka_test PRIVATE /permissive-)
     # copy dependent DLLs to output directory
     add_custom_command(
         TARGET pdxka_test POST_BUILD
