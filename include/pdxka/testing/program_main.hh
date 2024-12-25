@@ -29,6 +29,12 @@ namespace testing {
  * This class provides a convenient way to mock the values of `argc` and `argv`
  * needed by `main` or by `pdxka::program_main`.
  *
+ * @todo We need a copy ctor for this type as otherwise if a copy is made and
+ *  the original object is destroyed, the pointers in argv_ will be pointing
+ *  to garbage and accessing them is UB. This was discovered because compiling
+ *  with MSVC without /permissive- seemed to result in a copy (?) and therefore
+ *  garbage being present in the argv_ member values.
+ *
  * @tparam Ns... Null-terminated char array sizes
  */
 template <std::size_t... Ns>
