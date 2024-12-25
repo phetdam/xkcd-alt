@@ -18,9 +18,12 @@
 #include <boost/process/search_path.hpp>
 #include <boost/test/unit_test.hpp>
 
+#include "pdxka/features.h"
 #include "pdxka/testing/path.hh"
 #include "pdxka/testing/process.hh"
 #include "pdxka/version.h"
+
+namespace utf = boost::unit_test;
 
 // XKCD alt text program tests
 // note: if there are any fixtures being used across the whole suite it may be
@@ -122,8 +125,12 @@ void check_boost_details(const std::string& output, std::size_t pos)
  *
  * We are just interested in checking that `PDXKA_USE_BOOST_PROGRAM_OPTIONS` is
  * consistent with the run-time reporting of the Boost components used.
+ *
+ * @note Currently broken as `binary_dir()` is inaccurate when using
+ *  multi-config generators like we do on Windows. See `testing/path.hh.in`
+ *  comments on `PDXKA_BINARY_DIR` and why it is inaccurate.
  */
-BOOST_AUTO_TEST_CASE(bpo_check)
+BOOST_AUTO_TEST_CASE(bpo_check, * utf::enable_if<!PDXKA_WIN32>())
 {
   namespace pt = pdxka::testing;
   // invoke program with absolute path (so working directory is irrelevant)

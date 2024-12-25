@@ -12,8 +12,11 @@
 #include <boost/test/unit_test.hpp>
 #include <curl/curlver.h>
 
+#include "pdxka/features.h"
 #include "pdxka/testing/path.hh"
 #include "pdxka/testing/process.hh"
+
+namespace utf = boost::unit_test;
 
 // XKCD alt text program tests
 BOOST_AUTO_TEST_SUITE(xkcd_alt)
@@ -78,7 +81,7 @@ void check_curl_version(const std::string& output)
 /**
  * Test that project's run-time libcurl version matches the actual version.
  */
-BOOST_AUTO_TEST_CASE(curl_runtime_version)
+BOOST_AUTO_TEST_CASE(curl_runtime_version, * utf::enable_if<!PDXKA_WIN32>())
 {
   namespace pt = pdxka::testing;
   // invoke program with absolute path (so working directory is irrelevant)

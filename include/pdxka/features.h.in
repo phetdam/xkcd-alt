@@ -13,4 +13,13 @@
  */
 #cmakedefine01 PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
+/**
+ * Indicate whether we are compiling on Windows.
+ */
+#if defined(_WIN32)
+#define PDXKA_WIN32 1
+#else
+#define PDXKA_WIN32 0
+#endif  // !defined(_WIN32)
+
 #endif  // PDXKA_FEATURES_H_
