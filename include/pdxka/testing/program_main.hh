@@ -29,12 +29,6 @@ namespace testing {
  * This class provides a convenient way to mock the values of `argc` and `argv`
  * needed by `main` or by `pdxka::program_main`.
  *
- * @todo We need a copy ctor for this type as otherwise if a copy is made and
- *  the original object is destroyed, the pointers in argv_ will be pointing
- *  to garbage and accessing them is UB. This was discovered because compiling
- *  with MSVC without /permissive- seemed to result in a copy (?) and therefore
- *  garbage being present in the argv_ member values.
- *
  * @tparam Ns... Null-terminated char array sizes
  */
 template <std::size_t... Ns>
@@ -48,6 +42,7 @@ public:
   static constexpr auto n_args = sizeof...(Ns);
   static_assert(n_args > 0 && n_args < std::numeric_limits<int>::max());
 
+#ifndef _MSC_VER
   /**
    * Ctor.
    *
@@ -59,12 +54,39 @@ public:
    *
    * @param args... Parameter pack of null-terminated character arrays
    */
-#ifndef _MSC_VER
   argument_vector(const char (&...args)[Ns]) noexcept
   {
     assign_buffers(std::make_index_sequence<n_args>{}, args...);
   }
 #endif  // _MSC_VER
+
+  /**
+   * Copy ctor.
+   *
+   * We need special copy semantics because none of the class members are
+   * copy-constructible. In particular, using the defaulted copy ctor of a
+   * tuple with non-copy-constructible members, specifically where
+   * `std::is_copy_constructible_v<T>` is false for each `T` in the tuple, is
+   * UB until C++20 and considered ill-formed from C++20 onwards.
+   *
+   * Furthermore, the `argv()` pointers need to refer to the data items in the
+   * current argument vector object and thus need to be appropriately set.
+   * Otherwise, if they refer to the original object's data, we then have an
+   * object lifetime issue and copy behavior will be incorrect.
+   *
+   * @note A move ctor is unnecessary since this class's members are all POD.
+   *
+   * @note With Visual Studio 2022, if not compiling with `/permissive-`, this
+   *  copy ctor is actually called if taking a prvalue as an rvalue reference
+   *  into a function. It is possible a "move" is done, which in this case
+   *  decays to copy since there is no user-defined move ctor.
+   *
+   * @param other Argument vector to copy from
+   */
+  argument_vector(const argument_vector& other) noexcept
+  {
+    assign_buffers(std::make_index_sequence<n_args>{}, other);
+  }
 
   /**
    * Return the number of arguments as a signed int for the `argv` of `main`.
@@ -105,31 +127,71 @@ private:
   std::tuple<char[Ns]...> args_;
   char* argv_[n_args];
 
+#ifdef _MSC_VER
+  /**
+   * Private default ctor.
+   *
+   * We only allow default construction via `make_argument_vector` for MSVC.
+   */
+  argument_vector() = default;
+#endif  // _MSC_VER
+
   /**
    * Copy all null-terminated buffers into this object's internal buffers.
    *
    * @tparam Is... Sequential index values `0` through `sizeof...(Ns) - 1`
-   * @tparam Js... Null-terminated char array sizes
+   * @tparam Ss... Null-terminated char array sizes
    *
-   * @note The `Js...` pack is introduced to appease MSVC (it does not like a
+   * @note The `Ss...` pack is introduced to appease MSVC (it does not like a
    *  "fixed" pack of non-type template parameters for some reason). For
    *  GCC/Clang even under -pedantic using `Ns` is sufficient.
    *
    * @param idxs Index sequence to deduce index parameter pack from
    * @param args... Parameter pack of null-terminated char arrays
    */
-  template <std::size_t... Is, std::size_t... Js>
+  template <std::size_t... Is, std::size_t... Ss>
   void assign_buffers(
-    std::index_sequence<Is...> /*idxs*/, const char (&...args)[Js]) noexcept
+    std::index_sequence<Is...> /*idxs*/, const char (&...args)[Ss]) noexcept
   {
     // minimal check that packs are the appropriate size
     static_assert(sizeof...(Is) == n_args);
-    static_assert(sizeof...(Js) == n_args);
+    static_assert(sizeof...(Ss) == n_args);
     // fold to copy buffers + set pointers in argv_
     (
       [this, args]
       {
-        std::memcpy(std::get<Is>(args_), args, Js);
+        std::memcpy(std::get<Is>(args_), args, Ss);
+        argv_[Is] = std::get<Is>(args_);
+      }()
+      ,
+      ...
+    );
+  }
+
+  /**
+   * Assign the object's buffers from another argument vector instance.
+   *
+   * @tparam Is... Sequential index values `0` through `sizeof...(Ns) - 1`
+   * @tparam Ss... Null-terminated char array sizes
+   *
+   * @param idxs Index sequence to deduce index parameter pack from
+   * @param other Argument vector to perform copy assignment from
+   */
+  template <std::size_t... Is, std::size_t... Ss>
+  void assign_buffers(
+    std::index_sequence<Is...> /*idxs*/,
+    const argument_vector<Ss...>& other) noexcept
+  {
+    // minimal check that packs are the appropriate size
+    static_assert(sizeof...(Is) == n_args);
+    static_assert(sizeof...(Ss) == n_args);
+    // fold to copy buffers + set pointers in argv_
+    // note: cannot use defaulted tuple copy ctor since the members are arrays
+    // and is_copy_constructible_v will be false for all the members
+    (
+      [this, &other]
+      {
+        std::memcpy(std::get<Is>(args_), std::get<Is>(other.args_), Ss);
         argv_[Is] = std::get<Is>(args_);
       }()
       ,

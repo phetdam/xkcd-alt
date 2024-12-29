@@ -27,16 +27,16 @@ if(WIN32)
         pdxka_test PRIVATE
         NOMINMAX BOOST_USE_WINDOWS_H WIN32_LEAN_AND_MEAN
     )
-    # note: need compilation with /permissive- because otherwise it appears as
-    # if when the program_main() overload in testing/program_main.hh takes an
-    # prvalue as the argv argument_vector, the argv.argv() (decays to char**)
-    # seems to return a pointer to an array of garbage despite the actual
-    # argument_vector tuple members being correctly set. this may be due to
-    # /Zc:rvalueCast being off by default. it also shows, however, that we need
-    # to have a proper copy ctor for argument_vector; the argv pointers will
-    # get invalidated if a copy is made and the original is discarded.
-    # TODO: remove /permissive- once we have a better copy ctor
-    target_compile_options(pdxka_test PRIVATE /permissive-)
+    # note: although we fixed the issue with the testing/program_main.hh
+    # argument_vector not having the proper copy semantics (see copy ctor
+    # comments for details), without /permissive- Visual Studio 2022 calls the
+    # copy ctor for some reason when passing a prvalue argument_vector to a
+    # function template that is taking an argument_vector rvalue reference.
+    # this is probably related to MSVC's default behavior when /Zc:rvalueCast
+    # is not set but in this context there is no cast operation being done.
+    # note: some flakiness of pdkxa_test Boost.PropertyTree errors when we
+    # change this? seems like part of the build is not getting triggered
+    # target_compile_options(pdxka_test PRIVATE /permissive-)
     # copy dependent DLLs to output directory
     add_custom_command(
         TARGET pdxka_test POST_BUILD
