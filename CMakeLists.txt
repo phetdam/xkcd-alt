@@ -40,7 +40,7 @@ option(BUILD_TESTS "Build project tests" ON)
 # enable AddressSanitizer
 option(ENABLE_ASAN "Enable AddressSanitizer instrumentation" OFF)
 # use Boost.ProgramOptions for CLI argument parsing
-option(PDXKA_USE_BOOST_PROGRAM_OPTIONS "Use Boost.ProgramOptions" ON)
+option(PDXKA_USE_BOOST_PO_CLI "Use Boost.ProgramOptions" ON)
 
 # determine if generator is multi-config
 get_property(PDXKA_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -99,6 +99,9 @@ set(PDXKA_SYSTEM_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# note: PDXKA_USE_BOOST_PROGRAM_OPTIONS is used in features.h by configure_file
+# so we have to set a normal CMake variable from PDXKA_USE_BOOST_PO_CLI
+set(PDXKA_USE_BOOST_PROGRAM_OPTIONS ${PDXKA_USE_BOOST_PO_CLI})
 # use Boost.ProgramOptions for command-line option parsing. if not defined,
 # then hand-rolled implementation (WIP) is to be used. the goal is to get off
 # Boost.ProgramOptions so only Boost headers are needed.
