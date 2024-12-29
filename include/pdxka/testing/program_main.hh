@@ -63,7 +63,7 @@ public:
   /**
    * Copy ctor.
    *
-   * We need special copy semantics because none of the class members are
+   * We need a dedicated copy ctor because none of the class members are
    * copy-constructible. In particular, using the defaulted copy ctor of a
    * tuple with non-copy-constructible members, specifically where
    * `std::is_copy_constructible_v<T>` is false for each `T` in the tuple, is
