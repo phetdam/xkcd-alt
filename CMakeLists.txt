@@ -7,10 +7,11 @@ cmake_minimum_required(VERSION 3.21)
 #   cmake -S . -B build && cmake --build build -j
 #
 # Windows:
-#   cmake -S . -B build_windows -G Ninja && cmake --build build_windows -j
+#   cmake -S . -B build_windows_x64 -A x64 -DBoost_USE_STATIC_LIBS=OFF ^
+#       -DBUILD_STATIC_LIBS=OFF
+#   cmake --build build_windows -config Debug -j
 #
-# Note on Windows you should use the correct Developer Prompt, i.e. the default
-# Developer Prompt for x86 output, x64 Native Tools prompt for x64 output
+# Note on Windows you should use the Developer Command Prompt.
 #
 
 # set major, minor, patch versions + version string
@@ -34,6 +35,7 @@ project(
 set(PDXKA_PROGNAME xkcd-alt)
 
 # support library built as shared by default
+# TODO: this should be set to OFF for Windows until we have DLL export ready
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 # build tests. defaults to ON since you should build tests
 option(BUILD_TESTS "Build project tests" ON)
