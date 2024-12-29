@@ -205,6 +205,9 @@ message(STATUS "Generated ${PDXKA_FEATURES_HEADER_RELATIVE}")
 
 # generate version.h from version.h.in with project version/build info
 set(PDXKA_VERSION_HEADER ${PDXKA_INCLUDE}/pdxka/version.h)
+# FIXME: consider generating the header in the binary directory as the contents
+# of version.h differ when running on WSL Ubuntu vs. on native Windows. this
+# leads to needly recompilation when switching between the two.
 configure_file(
     ${PDXKA_VERSION_HEADER}.in ${PDXKA_VERSION_HEADER}
     @ONLY NEWLINE_STYLE LF
