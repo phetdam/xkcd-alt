@@ -27,7 +27,7 @@ Other options:
 
 [Boost](https://www.boost.org/) 1.71+ headers,
 [Boost.ProgramOptions](https://theboostcpplibraries.com/boost.program_options)
-1.71+, and [cURL](https://curl.se/) 7.68+.
+1.71+, and [libcurl](https://curl.se/libcurl/) 7.68+.
 
 In the future, the dependence on Boost.ProgramOptions may be removed.
 
@@ -48,8 +48,20 @@ To build release binaries for this project, simply use the command
 ```
 
 Simply typing `./build.sh` will build unoptimized binaries with debug symbols.
-Please note that if `pkg-config` is not installed, CMake may give you the
-following error message:
+Please note that if `pkg-config` is not installed, due to how the CMake
+[`FindCURL`](https://cmake.org/cmake/help/latest/module/FindCURL.html) find
+module is implemented, CMake will likely give you the following error message:
+
+> [!NOTE]
+>
+> This project provides its own "enhanced" find module via a CMake macro,
+> `pdxka_find_curl`, that can correctly determine the requested libcurl
+> components without relying on the libcurl CMake config script (which as of
+> 8.11.2 erroneously fails to set `CURL_FOUND` to true), pkg-config, or
+> `curl-config` (which is unusable on Windows as it is a shell script).
+>
+> In the future, this may be the way that libcurl and its components are
+> located for this project in which case pkg-config is no longer needed.
 
 ```
 CMake Error at /usr/share/cmake-3.22/Modules/FindCURL.cmake:175 (message):
@@ -62,7 +74,32 @@ Ensure that your system has `pkg-config` installed, i.e. with `apt`, etc.
 
 ### Windows
 
-TBA. For now, see the "How to build" comments in the top-level `CMakeLists.txt`.
+TBA. For now, here are some brief instructions for 64-bit builds.
+
+To configure a 64-bit Windows build, the following CMake command can be used:
+
+```shell
+cmake -S . -B build_windows_x64 -A x64 -DBUILD_SHARED_LIBS=OFF
+```
+
+Currently, support for shared library building is not yet implemented for
+Windows, so `-DBUILD_SHARED_LIBS=OFF` is required (on by default). Note that if
+may be necessary to also specify `-DBoost_USE_STATIC_LIBS=OFF` if your Boost
+libraries are built as DLLs as for Windows CMake will look for static libraries
+by default.
+
+Then, one can build the Debug configuration using the following:
+
+```shell
+cmake --build build_windows_x64 --config Debug -j
+```
+
+Tests can for the Debug config can be run with
+[CTest](https://cmake.org/cmake/help/latest/manual/ctest.1.html), e.g. with
+
+```shell
+ctest --test-dir build_windows_x64 -C Debug -j20
+```
 
 ## Gallery
 
