@@ -147,6 +147,10 @@ else()
     endif()
 endif()
 
+# add cmake directory for modules + include pdxka_find_curl macro
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(pdxka_find_curl)
+
 # compiled Boost components to search for
 set(PDXKA_BOOST_COMPONENTS "")
 # boost_program_options is compiled
@@ -179,7 +183,16 @@ endif()
 message(STATUS "Boost version: ${Boost_VERSION_STRING}")
 # need to be able to make HTTPS request. note: CMake errors on Windows, as the
 # generated curl-config Bash script of course cannot be run by CMD
-find_package(CURL 7.68 REQUIRED COMPONENTS HTTPS)
+set(PDXKA_CURL_VERSION 7.68)
+# when not on Windows, a standard find_package call works
+if(NOT WIN32)
+    find_package(CURL ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
+# as of 8.11.2-DEV libcurl's CMake config doesn't work correctly, so we need
+# special logic. we can't use curl-config (it's a Bash script), but we can get
+# a lot of info from the curl -V version output (features + components).
+else()
+    pdxka_find_curl(VERSION ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
+endif()
 message(STATUS "libcurl version: ${CURL_VERSION_STRING}")
 
 # add include dir. use SYSTEM to suppress warnings from third-party libraries
