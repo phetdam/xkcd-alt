@@ -50,3 +50,51 @@ if(WIN32)
 endif()
 
 add_test(NAME pdxka_test COMMAND pdxka_test)
+
+# tests for pdxka_find_curl
+# 1. optional search, version too high
+add_test(
+    NAME pdxka_find_curl_test_1
+    COMMAND
+        ${CMAKE_COMMAND} -P
+            ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_find_curl_test.cmake
+            --
+            # TODO: should have a helper variable for this path
+            -m ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/pdxka_find_curl.cmake
+            -v 1900.90.0
+)
+set_property(
+    TEST pdxka_find_curl_test_1 PROPERTY
+    PASS_REGULAR_EXPRESSION "requested version"
+)
+# 2. required search, version too high
+add_test(
+    NAME pdxka_find_curl_test_2
+    COMMAND
+        ${CMAKE_COMMAND} -P
+        ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_find_curl_test.cmake
+        --
+        -m ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/pdxka_find_curl.cmake
+        -r
+        -v 900.0.1
+)
+set_property(
+    TEST pdxka_find_curl_test_2 PROPERTY
+    PASS_REGULAR_EXPRESSION "required version"
+)
+# 3. optional search, version is ok, unknown component
+add_test(
+    NAME pdxka_find_curl_test_3
+    COMMAND
+        ${CMAKE_COMMAND} -P
+        ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_find_curl_test.cmake
+        --
+        -m ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/pdxka_find_curl.cmake
+        -v  ${PDXKA_CURL_VERSION}
+        # note: HTTPS is required anyways for this project
+        -c "HTTPS;nonexistent_libcurl_component"
+)
+set_property(
+    TEST pdxka_find_curl_test_3 PROPERTY
+    PASS_REGULAR_EXPRESSION "Could NOT find requested libcurl component"
+)
