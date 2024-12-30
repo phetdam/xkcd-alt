@@ -193,6 +193,7 @@ if(NOT WIN32)
 else()
     pdxka_find_curl(VERSION ${PDXKA_CURL_VERSION} REQUIRED COMPONENTS HTTPS)
 endif()
+# note: this is set by FindCURL. if using CONFIG mode use CURL_VERSION
 message(STATUS "libcurl version: ${CURL_VERSION_STRING}")
 
 # add include dir. use SYSTEM to suppress warnings from third-party libraries
