@@ -103,7 +103,7 @@ macro(pdxka_find_curl)
     find_file(PDXKA_CURL_H curl/curl.h HINTS ${_curl_include_hints} NO_CACHE)
     if(PDXKA_CURL_H STREQUAL "PDXKA_CURL_H-NOTFOUND")
         # error if required, otherwise not found
-        if(DEFINED _PDXKA_CURL_REQUIRED)
+        if(_PDXKA_CURL_REQUIRED)
             message(FATAL_ERROR "Unable to find curl/curl.h")
         else()
             set(CURL_FOUND FALSE)
@@ -121,7 +121,7 @@ macro(pdxka_find_curl)
     find_file(PDXKA_CURLVER_H curl/curlver.h HINTS ${CURL_INCLUDE_DIRS} NO_CACHE)
     if(PDXKA_CURLVER_H STREQUAL "PDXKA_CURLVER_H-NOTFOUND")
         # error if required, otherwise not found
-        if(DEFINED _PDXKA_CURL_REQUIRED)
+        if(_PDXKA_CURL_REQUIRED)
             message(FATAL_ERROR "Unable to find curl/curlver.h")
         else()
             set(CURL_FOUND FALSE)
@@ -134,7 +134,7 @@ macro(pdxka_find_curl)
     )
     if(PDXKA_CURL_EXE STREQUAL "PDXKA_CURL_EXE-NOTFOUND")
         # error if required, otherwise not found
-        if(DEFINED _PDXKA_CURL_REQUIRED)
+        if(_PDXKA_CURL_REQUIRED)
             message(FATAL_ERROR "Unable to find curl executable")
         else()
             set(CURL_FOUND FALSE)
@@ -162,7 +162,7 @@ macro(pdxka_find_curl)
     endif()
     if(CURL_LIBRARY STREQUAL "CURL_LIBRARY-NOTFOUND")
         # error if required, otherwise not found
-        if(DEFINED _PDXKA_CURL_REQUIRED)
+        if(_PDXKA_CURL_REQUIRED)
             message(FATAL_ERROR "Unable to find the libcurl library")
         else()
             set(CURL_FOUND FALSE)
@@ -170,7 +170,7 @@ macro(pdxka_find_curl)
     endif()
     # only need to check debug library on Windows
     if(WIN32 AND CURL_DEBUG_LIBRARY STREQUAL "CURL_DEBUG_LIBRARY-NOTFOUND")
-        if(DEFINED _PDXKA_CURL_REQUIRED)
+        if(_PDXKA_CURL_REQUIRED)
             message(FATAL_ERROR "Unable to find the libcurl debug library")
         else()
             set(CURL_FOUND FALSE)
@@ -257,7 +257,7 @@ macro(pdxka_find_curl)
             if(_PDXKA_CURL_VERSION VERSION_GREATER CURL_VERSION)
                 set(CURL_FOUND FALSE)
                 # fatal error
-                if(DEFINED _PDXKA_CURL_REQUIRED)
+                if(_PDXKA_CURL_REQUIRED)
                     message(
                         FATAL_ERROR
                         "Found libcurl ${CURL_VERSION} < required version "
@@ -328,7 +328,8 @@ macro(pdxka_find_curl)
         endforeach()
     endif()
     # if CURL_FOUND still true after matching components, we define targets
-    if(CURL_FOUND)
+    # note that if running in script mode this is disabled
+    if(CURL_FOUND AND NOT DEFINED CMAKE_SCRIPT_MODE_FILE)
         add_library(CURL::libcurl INTERFACE IMPORTED)
         # note: on Win32 the library names are actually different
         target_link_libraries(
