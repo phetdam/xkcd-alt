@@ -332,7 +332,7 @@ macro(pdxka_find_curl)
                 if(_PDXKA_CURL_REQUIRED)
                     message(
                         FATAL_ERROR
-                        "Could NOT find requested libcurl component ${_req_comp}"
+                        "Could NOT find required libcurl component ${_req_comp}"
                     )
                 else()
                     message(
