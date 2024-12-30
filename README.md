@@ -50,18 +50,7 @@ To build release binaries for this project, simply use the command
 Simply typing `./build.sh` will build unoptimized binaries with debug symbols.
 Please note that if `pkg-config` is not installed, due to how the CMake
 [`FindCURL`](https://cmake.org/cmake/help/latest/module/FindCURL.html) find
-module is implemented, CMake will likely give you the following error message:
-
-> [!NOTE]
->
-> This project provides its own "enhanced" find module via a CMake macro,
-> `pdxka_find_curl`, that can correctly determine the requested libcurl
-> components without relying on the libcurl CMake config script (which as of
-> 8.11.2 erroneously fails to set `CURL_FOUND` to true), pkg-config, or
-> `curl-config` (which is unusable on Windows as it is a shell script).
->
-> In the future, this may be the way that libcurl and its components are
-> located for this project in which case pkg-config is no longer needed.
+module is implemented, CMake will error out with:
 
 ```
 CMake Error at /usr/share/cmake-3.22/Modules/FindCURL.cmake:175 (message):
@@ -71,6 +60,17 @@ Call Stack (most recent call first):
 ```
 
 Ensure that your system has `pkg-config` installed, i.e. with `apt`, etc.
+
+> [!NOTE]
+>
+> This project provides its own libcurl find capability via a CMake macro,
+> `pdxka_find_curl`, that can correctly determine the requested libcurl
+> components without relying on the libcurl CMake config script (which as of
+> 8.11.2 erroneously fails to set `CURL_FOUND` to true), pkg-config, or
+> `curl-config` (which is unusable on Windows as it is a shell script). In the
+> future, locating libcurl and its components may be done with
+> `pdkxa_find_curl` not just on Windows, in which case pkg-config is no longer
+> necessary to locate libcurl.
 
 ### Windows
 
@@ -94,7 +94,7 @@ Then, one can build the Debug configuration using the following:
 cmake --build build_windows_x64 --config Debug -j
 ```
 
-Tests can for the Debug config can be run with
+Tests for the Debug config can be run with
 [CTest](https://cmake.org/cmake/help/latest/manual/ctest.1.html), e.g. with
 
 ```shell
