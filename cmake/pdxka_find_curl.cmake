@@ -21,6 +21,7 @@ cmake_minimum_required(VERSION 3.20)
 # Therefore, we provide the pdxka_find_curl() macro that basically serves as a
 # home-brew find module. We don't provide an actual FindCURL.cmake find module
 # however as generally we still want to use CMake's implementation.
+#
 
 ##
 # Locate libcurl using the curl executable.
@@ -28,6 +29,22 @@ cmake_minimum_required(VERSION 3.20)
 # On non-Windows systems a find_package(CURL) call should be used instead but
 # this macro will still work. It's better to use the official FindCURL find
 # module, however, if possible, as it will fall back to use pkg-config.
+#
+# When the macro completes, the following variables are defined:
+#
+#   CURL_FOUND              TRUE if all components found, FALSE otherwise
+#
+# If CURL_FOUND is true, then the following variables can be used:
+#
+#   CURL_INCLUDE_DIRS       Directory containing the curl/* headers
+#   CURL_VERSION_MAJOR      libcurl major version component
+#   CURL_VERSION_MINOR      libcurl minor version component
+#   CURL_VERSION_PATCH      libcurl patch version component
+#   CURL_VERSION            libcurl version string, e.g. 8.11.2-DEV
+#   CURL_VERSION_STRING     libcurl version string, e.g. 8.11.2-DEV, provided
+#                           for compatibility with CMake's FindCURL module
+#
+# The CURL::libcurl imported library target is also defined for use.
 #
 # Arguments:
 #   VERSION version
@@ -118,7 +135,7 @@ macro(pdxka_find_curl)
     if(PDXKA_CURL_EXE STREQUAL "PDXKA_CURL_EXE-NOTFOUND")
         # error if required, otherwise not found
         if(DEFINED _PDXKA_CURL_REQUIRED)
-            message(FATAL_ERROR "Unable to find curl.exe")
+            message(FATAL_ERROR "Unable to find curl executable")
         else()
             set(CURL_FOUND FALSE)
         endif()
@@ -205,7 +222,6 @@ macro(pdxka_find_curl)
             RESULT_VARIABLE PDXKA_CURL_VERSION_RESULT
             OUTPUT_VARIABLE PDXKA_CURL_VERSION_OUT
             ERROR_VARIABLE PDXKA_CURL_VERSION_ERR
-            # strip trailine newlines from output
         )
         # must succeed. nonzero is failure
         if(PDXKA_CURL_VERSION_RESULT)
@@ -257,16 +273,59 @@ macro(pdxka_find_curl)
                 endif()
             endif()
         endif()
+        # information print of features and protocols. we first convert them to
+        # be space-separated for nicer printing
+        string(REPLACE ";" " " PDXKA_CURL_PRINT_FEATURES "${PDXKA_CURL_FEATURES}")
+        string(REPLACE ";" " " PDXKA_CURL_PRINT_PROTOCOLS "${PDXKA_CURL_PROTOCOLS}")
+        message(STATUS "libcurl features: ${PDXKA_CURL_PRINT_FEATURES}")
+        message(STATUS "libcurl protocols: ${PDXKA_CURL_PRINT_PROTOCOLS}")
+        # unset
+        unset(PDXKA_CURL_PRINT_FEATURES)
+        unset(PDXKA_CURL_PRINT_PROTOCOLS)
     endif()
     # CURL_FOUND may be false if version check failed. if not, then we can
     # begin matching the requested components
-    if(CURL_FOUND)
-        #
-        # if( VERSION_GREATER_EQUAL _PDXKA_CURL_VERSION)
-        # message(STATUS "_PDXKA_CURL_COMPONENTS ${_PDXKA_CURL_COMPONENTS}")
-        # TODO: no check yet
-        # remove prefix + convert into CMake list
-        # note: CURL_FOUND, CURL_VERSION_STRING will be set correctly
+    if(CURL_FOUND AND DEFINED _PDXKA_CURL_COMPONENTS)
+        # look for components
+        foreach(_req_comp ${_PDXKA_CURL_COMPONENTS})
+            # first check features
+            foreach(_avail_feature ${PDXKA_CURL_FEATURES})
+                if(_req_comp STREQUAL _avail_feature)
+                    set(CURL_${_req_comp}_FOUND TRUE)
+                    break()
+                endif()
+            endforeach()
+            # check protocols if not found
+            if(NOT DEFINED CURL_${_req_comp}_FOUND)
+                foreach(_avail_proto ${PDXKA_CURL_PROTOCOLS})
+                    if(_req_comp STREQUAL _avail_proto)
+                        set(CURL_${_req_comp}_FOUND TRUE)
+                        break()
+                    endif()
+                endforeach()
+            endif()
+            # if still not found, then we failed to locate the component
+            if(NOT DEFINED CURL_${_req_comp}_FOUND)
+                set(CURL_${_req_comp}_FOUND FALSE)
+            endif()
+        endforeach()
+        # check that each component is found
+        foreach(_req_comp ${_PDXKA_CURL_COMPONENTS})
+            if(NOT CURL_${_req_comp}_FOUND)
+                if(_PDXKA_CURL_REQUIRED)
+                    message(
+                        FATAL_ERROR
+                        "Could NOT find requested libcurl component ${_req_comp}"
+                    )
+                else()
+                    message(
+                        STATUS
+                        "Could NOT find requested libcurl component ${_req_comp}"
+                    )
+                    set(CURL_FOUND FALSE)
+                endif()
+            endif()
+        endforeach()
     endif()
     # if CURL_FOUND still true after matching components, we define targets
     if(CURL_FOUND)
@@ -277,10 +336,5 @@ macro(pdxka_find_curl)
             $<IF:$<CONFIG:Debug>,${CURL_DEBUG_LIBRARY},${CURL_LIBRARY}>
         )
     endif()
+    # finally, done
 endmacro()
-
-# if CURL found, break
-if(CURL_FOUND)
-    return()
-endif()
-
