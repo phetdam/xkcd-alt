@@ -90,7 +90,7 @@ macro(pdxka_find_curl)
     if(WIN32)
         set(_curl_root_hints ${_curl_root_hints} "C:/Program Files")
     else()
-        set(_curl_root_hints ${_curl_root_hints} "/usr/local")
+        set(_curl_root_hints ${_curl_root_hints} "/usr/local" "/usr")
     endif()
     # build include hints
     list(
@@ -100,7 +100,11 @@ macro(pdxka_find_curl)
     # first set CURL_FOUND to true. this may be set to false later
     set(CURL_FOUND TRUE)
     # find required curl/curl.h
-    find_file(PDXKA_CURL_H curl/curl.h HINTS ${_curl_include_hints} NO_CACHE)
+    find_file(
+        PDXKA_CURL_H curl/curl.h
+        # note: x86_64-linux-gnu is for Ubuntu compatibility
+        HINTS ${_curl_include_hints} PATH_SUFFIXES x86_64-linux-gnu NO_CACHE
+    )
     if(PDXKA_CURL_H STREQUAL "PDXKA_CURL_H-NOTFOUND")
         # error if required, otherwise not found
         if(_PDXKA_CURL_REQUIRED)
@@ -115,7 +119,18 @@ macro(pdxka_find_curl)
     set(CURL_INCLUDE_DIRS "${CURL_INCLUDE_DIRS}/../../")
     cmake_path(NORMAL_PATH CURL_INCLUDE_DIRS OUTPUT_VARIABLE CURL_INCLUDE_DIRS)
     # set the curl root
-    set(CURL_INSTALL_ROOT "${CURL_INCLUDE_DIRS}/../")
+    # hardcode for Linux to remove x86_64-linux-gnu
+    if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+        string(
+            REPLACE "x86_64-linux-gnu" ""
+            CURL_INSTALL_ROOT "${CURL_INCLUDE_DIRS}"
+        )
+        # still need to back up a level
+        set(CURL_INSTALL_ROOT "${CURL_INSTALL_ROOT}/../")
+    # otherwise just back up a level
+    else()
+        set(CURL_INSTALL_ROOT "${CURL_INCLUDE_DIRS}/../")
+    endif()
     cmake_path(NORMAL_PATH CURL_INSTALL_ROOT OUTPUT_VARIABLE CURL_INSTALL_ROOT)
     # find required curl/curlver.h (limited hint)
     find_file(PDXKA_CURLVER_H curl/curlver.h HINTS ${CURL_INCLUDE_DIRS} NO_CACHE)
@@ -156,7 +171,9 @@ macro(pdxka_find_curl)
     else()
         find_file(
             CURL_LIBRARY libcurl.so
-            HINTS ${CURL_INSTALL_ROOT} PATH_SUFFIXES lib NO_CACHE
+            HINTS ${CURL_INSTALL_ROOT}
+            # again, x86_64-linux-gnu subdir for Ubuntu compatibility
+            PATH_SUFFIXES lib lib/x86_64-linux-gnu NO_CACHE
         )
         set(CURL_DEBUG_LIBRARY ${CURL_LIBRARY})
     endif()
