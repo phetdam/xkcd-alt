@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.21)
 # Windows:
 #   cmake -S . -B build_windows_x64 -A x64 -DBoost_USE_STATIC_LIBS=OFF ^
 #       -DBUILD_STATIC_LIBS=OFF
-#   cmake --build build_windows -config Debug -j
+#   cmake --build build_windows --config Debug -j
 #
 # Note on Windows you should use the Developer Command Prompt.
 #
