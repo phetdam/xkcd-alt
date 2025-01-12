@@ -69,7 +69,7 @@ Ensure that your system has `pkg-config` installed, i.e. with `apt`, etc.
 > 8.11.2 erroneously fails to set `CURL_FOUND` to true), pkg-config, or
 > `curl-config` (which is unusable on Windows as it is a shell script). In the
 > future, locating libcurl and its components may be done with
-> `pdkxa_find_curl` not just on Windows, in which case pkg-config is no longer
+> `pdxka_find_curl` not just on Windows, in which case pkg-config is no longer
 > necessary to locate libcurl.
 
 ### Windows
@@ -79,14 +79,13 @@ TBA. For now, here are some brief instructions for 64-bit builds.
 To configure a 64-bit Windows build, the following CMake command can be used:
 
 ```shell
-cmake -S . -B build_windows_x64 -A x64 -DBUILD_SHARED_LIBS=OFF
+cmake -S . -B build_windows_x64 -A x64
 ```
 
-Currently, support for shared library building is not yet implemented for
-Windows, so `-DBUILD_SHARED_LIBS=OFF` is required (on by default). Note that if
-may be necessary to also specify `-DBoost_USE_STATIC_LIBS=OFF` if your Boost
-libraries are built as DLLs as for Windows CMake will look for static libraries
-by default.
+To build the `pdxka` support library as a static library, specify
+`-DBUILD_SHARED_LIBS=OFF` (on by default). Note that it may be necessary to
+also specify `-DBoost_USE_STATIC_LIBS=OFF` if your Boost libraries are built as
+DLLs as on Windows CMake will look for static libraries by default.
 
 Then, one can build the Debug configuration using the following:
 
