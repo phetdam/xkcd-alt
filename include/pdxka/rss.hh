@@ -19,6 +19,7 @@
 #include <curl/curl.h>
 
 #include "pdxka/curl.hh"
+#include "pdxka/dllexport.h"
 
 namespace pdxka {
 
@@ -123,6 +124,7 @@ public:
    * @param tree `const ptree&` tree containing XKCD TSS item data
    * @param item `rss_item*` pointer to RSS item to populate
    */
+  PDXKA_PUBLIC
   static rss_item* from_tree(const ptree& tree, rss_item* item);
 
   /**
@@ -181,6 +183,7 @@ using rss_item_vector = std::vector<rss_item>;
 /**
  * Return a `rss_item_vector` from a Boost property tree holding XKCD RSS XML.
  */
+PDXKA_PUBLIC
 rss_item_vector to_item_vector(const boost::property_tree::ptree& rss_tree);
 
 }  // namespace pdxka

@@ -11,6 +11,7 @@
 #include <functional>
 
 #include "pdxka/curl.hh"
+#include "pdxka/dllexport.h"
 
 namespace pdxka {
 
@@ -44,6 +45,7 @@ using rss_provider = std::function<curl_result(const cliopts&)>;
  * @param provider Callable providing the RSS XML to parse
  * @returns `EXIT_SUCCESS` on success, `EXIT_FAILURE` or higher or failure
  */
+PDXKA_PUBLIC
 int program_main(int argc, char* argv[], const rss_provider& provider);
 
 }  // namespace pdxka

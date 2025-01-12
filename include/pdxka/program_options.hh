@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <string>
 
+#include "pdxka/dllexport.h"
 #include "pdxka/features.h"
 #include "pdxka/version.h"
 
@@ -45,6 +46,7 @@ struct option_parse_result {
  * @param argc Argument count from `main()`
  * @param argv Argument vector from `main()`
  */
+PDXKA_PUBLIC
 option_parse_result parse_options(int argc, char* argv[]);
 #else
 /**
@@ -61,6 +63,7 @@ using cliopt_map = std::unordered_map<std::string, std::vector<std::string>>;
  * @param argc Argument count from `main()`
  * @param argv Argument vector from `main()`
  */
+PDXKA_PUBLIC
 bool parse_options(cliopt_map& map, int argc, char* argv[]);
 #endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 

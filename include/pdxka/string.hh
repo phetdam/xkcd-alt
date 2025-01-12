@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <string>
 
+#include "pdxka/dllexport.h"
+
 namespace pdxka {
 
 /**
@@ -24,6 +26,7 @@ namespace pdxka {
  * @param hard_wrap `bool` to split a word whose length is longer than
  *  `line_length` across lines if `true`, otherwise allow oveflow
  */
+PDXKA_PUBLIC
 std::string line_wrap(
   const std::string& orig, std::size_t line_length, bool hard_wrap = false);
 
