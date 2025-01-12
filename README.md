@@ -85,7 +85,8 @@ cmake -S . -B build_windows_x64 -A x64
 To build the `pdxka` support library as a static library, specify
 `-DBUILD_SHARED_LIBS=OFF` (on by default). Note that it may be necessary to
 also specify `-DBoost_USE_STATIC_LIBS=OFF` if your Boost libraries are built as
-DLLs as on Windows CMake will look for static libraries by default.
+DLLs as on Windows CMake will look for static libraries by default unless
+instructed otherwise.
 
 Then, one can build the Debug configuration using the following:
 
