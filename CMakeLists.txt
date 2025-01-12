@@ -147,9 +147,10 @@ else()
     endif()
 endif()
 
-# add cmake directory for modules + include pdxka_find_curl macro
+# add cmake directory for modules + include CMake helpers
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(pdxka_find_curl)
+include(pdxka_target_helpers)
 
 # compiled Boost components to search for
 set(PDXKA_BOOST_COMPONENTS "")

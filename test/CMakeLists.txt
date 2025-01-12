@@ -38,15 +38,7 @@ if(WIN32)
     # change this? seems like part of the build is not getting triggered
     # target_compile_options(pdxka_test PRIVATE /permissive-)
     # copy dependent DLLs to output directory
-    add_custom_command(
-        TARGET pdxka_test POST_BUILD
-        COMMAND
-            ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_RUNTIME_DLLS:pdxka_test> $<TARGET_FILE_DIR:pdxka_test>
-        COMMENT "Copying dependent DLLs for pdxka_test"
-        COMMAND_EXPAND_LISTS
-        VERBATIM
-    )
+    pdxka_copy_runtime_dlls(pdxka_test)
 endif()
 
 add_test(NAME pdxka_test COMMAND pdxka_test)
