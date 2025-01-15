@@ -41,7 +41,8 @@ if(WIN32)
     pdxka_copy_runtime_dlls(pdxka_test)
 endif()
 
-add_test(NAME pdxka_test COMMAND pdxka_test)
+# add Boost tests individually
+pdxka_boost_discover_tests(pdxka_test)
 
 # tests for pdxka_find_curl
 # 1. optional search, version too high
