@@ -121,3 +121,17 @@ definitions of simultaneity, it is also known for the disappearance of many top
 players during... [more]
 		-- https://xkcd.com/2705/
 ```
+
+## CMake magic
+
+A lot of CMake scripting has been done to get cross-platform builds working
+correctly with CMake while also supporting source file generation and test
+enumeration properly for single and multi-config build system generators. Here's
+a quick bullet list of some arcane CMake scripting tasks:
+
+* `pdxka_find_curl` to replace CMake's own `FindCURL` find module that works
+  around the libcurl CMake config script not exporting features + protocols
+* `pdxka_boost_discover_tests` to discover all the tests in a Boost.Test test
+  runner, like `gtest_discover_tests`, by reading the output of `--list_content`
+* `version.h` header file generation support for multi-config generators to
+  run `configure_file` as a *pre-build* per-config generation step
