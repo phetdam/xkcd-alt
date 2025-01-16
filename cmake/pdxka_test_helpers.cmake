@@ -36,7 +36,18 @@ function(pdxka_boost_discover_tests target)
     if(PDXKA_IS_MULTI_CONFIG)
         file(
             WRITE "${ctest_include_file}"
-            "include(\"${ctest_add_test_prefix}-\${CTEST_CONFIGURATION_TYPE}.cmake\")"
+            # multi-config generators require -C option to be used with CTest.
+            # if not provided, simply raise a warning instead of failing
+            "if(NOT CTEST_CONFIGURATION_TYPE)\n"
+            "    message(\n"
+            "        WARNING\n"
+            "        \"No -C <config> specified for multi-config generator \"\n"
+            "\"${CMAKE_GENERATOR}. ${target} tests will not be run.\"\n"
+            ")\n"
+            # configuration specified
+            "else()\n"
+            "    include(\"${ctest_add_test_prefix}-\${CTEST_CONFIGURATION_TYPE}.cmake\")\n"
+            "endif()\n"
         )
     else()
         file(
