@@ -34,8 +34,6 @@
 
 /**
  * Project build type.
- *
- * @todo For multi-config generators this will be inaccurate.
  */
 #define PDXKA_BUILD_TYPE "@PDXKA_BUILD_TYPE@"
 

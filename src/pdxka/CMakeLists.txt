@@ -7,6 +7,10 @@ set_target_properties(pdxka PROPERTIES DEFINE_SYMBOL PDXKA_BUILD_DLL)
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(pdxka PUBLIC PDXKA_DLL)
 endif()
+# if multi-config, also need to use per-config version.h config step
+if(PDXKA_IS_MULTI_CONFIG)
+    add_dependencies(pdxka pdxka_version_h)
+endif()
 # need to link with PUBLIC since libcurl exposed through interface
 # TODO: consider hiding this implementation detail? need to rework interface
 # note: we don't actually have to link with libcurl here since the libcurl

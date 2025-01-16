@@ -87,11 +87,12 @@ endif()
 
 # output artifacts into top-level directory. multi-config generators like
 # Visual Studio will have an extra per-config subdirectory for the build type
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 # separate variable for output directory
-set(PDXKA_BINARY_DIR ${CMAKE_BINARY_DIR})
+# FIXME: deprecate this; not accurate for multi-config generators
+set(PDXKA_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # set some system information variables used for the version info
 set(PDXKA_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
@@ -206,9 +207,20 @@ include_directories(
     SYSTEM ${Boost_INCLUDE_DIRS}
     SYSTEM ${CURL_INCLUDE_DIRS}
 )
+# for multi-config generators use binary dir generator expression as the
+# generated files will go in the per-config subdirectories
+if(PDXKA_IS_MULTI_CONFIG)
+    include_directories(${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/include)
+# for single-config generator generated files are from binary dir
+else()
+    include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+endif()
 
 # generate features.h from features.h.in with any configured features. we
 # ensure that the generated header has the same LF line endings as source
+# TODO: write features.h to build directories so Windows/Linux builds don't
+# interfere with each other. will need ${CMAKE_CURRENT_BINARY_DIR}/include to
+# be on the list of include directories unconditionally
 set(PDXKA_FEATURES_HEADER ${PDXKA_INCLUDE}/pdxka/features.h)
 configure_file(
     ${PDXKA_FEATURES_HEADER}.in ${PDXKA_FEATURES_HEADER}
@@ -223,20 +235,50 @@ cmake_path(
 message(STATUS "Generated ${PDXKA_FEATURES_HEADER_RELATIVE}")
 
 # generate version.h from version.h.in with project version/build info
-set(PDXKA_VERSION_HEADER ${PDXKA_INCLUDE}/pdxka/version.h)
-# FIXME: consider generating the header in the binary directory as the contents
-# of version.h differ when running on WSL Ubuntu vs. on native Windows. this
-# leads to needly recompilation when switching between the two.
-configure_file(
-    ${PDXKA_VERSION_HEADER}.in ${PDXKA_VERSION_HEADER}
-    @ONLY NEWLINE_STYLE LF
-)
-cmake_path(
-    RELATIVE_PATH PDXKA_VERSION_HEADER
-    BASE_DIRECTORY ${PDXKA_INCLUDE}
-    OUTPUT_VARIABLE PDXKA_VERSION_HEADER_RELATIVE
-)
-message(STATUS "Generated ${PDXKA_VERSION_HEADER_RELATIVE}")
+set(PDXKA_VERSION_HEADER pdxka/version.h)
+# for multi-config generators, this must be a pre-build step, so we use a
+# custom target to ensure that this step can be done before pdxka building
+if(PDXKA_IS_MULTI_CONFIG)
+    # helper path
+    set(_version_h_path "include/${PDXKA_VERSION_HEADER}")
+    add_custom_target(
+        pdxka_version_h
+        COMMAND
+            ${CMAKE_COMMAND}
+                -DPDXKA_VERSION_HEADER_IN=${PDXKA_INCLUDE}/${PDXKA_VERSION_HEADER}.in
+                # generator expression for correct per-config output
+                -DPDXKA_VERSION_HEADER=${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${_version_h_path}
+                # variables consumed by version.h
+                -DPDXKA_MAJOR_VERSION=${PDXKA_MAJOR_VERSION}
+                -DPDXKA_MINOR_VERSION=${PDXKA_MINOR_VERSION}
+                -DPDXKA_PATCH_VERSION=${PDXKA_PATCH_VERSION}
+                -DPDXKA_VERSION=${PDXKA_VERSION}
+                -DPDXKA_BUILD_TYPE=${PDXKA_BUILD_TYPE}
+                -DPDXKA_SYSTEM_NAME=${PDXKA_SYSTEM_NAME}
+                -DPDXKA_SYSTEM_VERSION=${PDXKA_SYSTEM_VERSION}
+                -DPDXKA_SYSTEM_ARCH=${PDXKA_SYSTEM_ARCH}
+                -DPDXKA_PROGNAME=${PDXKA_PROGNAME}
+                -DBoost_VERSION_MACRO=${Boost_VERSION_MACRO}
+                -DBoost_VERSION_STRING=${Boost_VERSION_STRING}
+                -DBoost_MAJOR_VERSION=${Boost_MAJOR_VERSION}
+                -DBoost_MINOR_VERSION=${Boost_MINOR_VERSION}
+                -DBoost_SUBMINOR_VERSION=${Boost_SUBMINOR_VERSION}
+                -DCURL_VERSION_STRING=${CURL_VERSION_STRING}
+                -P "${PDXKA_CMAKE_MODULE_DIR}/pdxka_configure_version.cmake"
+        BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${_version_h_path}"
+        COMMENT "Generating $<CONFIG> ${PDXKA_VERSION_HEADER}"
+        VERBATIM
+    )
+    unset(_version_h_path)
+# for single-config, we can use standard configure_file
+else()
+    configure_file(
+        "${PDXKA_INCLUDE}/${PDXKA_VERSION_HEADER}.in"
+        "include/${PDXKA_VERSION_HEADER}"
+        @ONLY NEWLINE_STYLE LF
+    )
+    message(STATUS "Generated ${PDXKA_VERSION_HEADER}")
+endif()
 
 # test or other data directory root
 set(PDXKA_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
@@ -245,6 +287,9 @@ add_subdirectory(src)
 
 if(BUILD_TESTS)
     # generate path.hh header for test paths
+    # FIXME: same issue that version.h used to have, which is that WSL/Windows
+    # has different results so builds will affect each other and that with
+    # multi-config generators the PDXKA_BINARY_DIR is inaccurate
     set(PDXKA_TEST_PATHS_HEADER ${PDXKA_INCLUDE}/pdxka/testing/path.hh)
     configure_file(
         ${PDXKA_TEST_PATHS_HEADER}.in ${PDXKA_TEST_PATHS_HEADER}
