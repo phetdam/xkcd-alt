@@ -129,9 +129,15 @@ correctly with CMake while also supporting source file generation and test
 enumeration properly for single and multi-config build system generators. Here's
 a quick bullet list of some arcane CMake scripting tasks:
 
-* `pdxka_find_curl` to replace CMake's own `FindCURL` find module that works
-  around the libcurl CMake config script not exporting features + protocols
-* `pdxka_boost_discover_tests` to discover all the tests in a Boost.Test test
-  runner, like `gtest_discover_tests`, by reading the output of `--list_content`
+* `pdxka_find_curl` to replace CMake's own `FindCURL` find module that supports
+  `COMPONENTS` in a
+  [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html)
+  call, working around the libcurl CMake config script not exporting
+  features + protocols
+* `pdxka_boost_discover_tests` to discover and separately register all the tests
+  in a Boost.Test test runner, like a simpler
+  [`gtest_discover_tests`](https://cmake.org/cmake/help/latest/module/GoogleTest.html#command:gtest_discover_tests),
+  by reading the output of `--list_content`
 * `version.h` header file generation support for multi-config generators to
-  run `configure_file` as a *pre-build* per-config generation step
+  run `configure_file` as a *pre-build* per-config generation step so each
+  build config gets its own `version.h` generated header
