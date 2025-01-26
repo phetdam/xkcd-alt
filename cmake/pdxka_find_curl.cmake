@@ -158,15 +158,26 @@ macro(pdxka_find_curl)
     # clear hint lists
     unset(_curl_root_hints)
     unset(_curl_include_hints)
-    # find the libcurl library. for Windows the debug library is separate
+    # find the libcurl library. for Windows the debug library is separate and
+    # we also need to separately find the import library as well
     if(WIN32)
+        # find import libraries
         find_file(
-            CURL_LIBRARY libcurl_imp.lib
+            CURL_IMPORT_LIBRARY libcurl_imp.lib
             HINTS ${CURL_INSTALL_ROOT} PATH_SUFFIXES lib NO_CACHE
         )
         find_file(
-            CURL_DEBUG_LIBRARY libcurl-d_imp.lib
+            CURL_DEBUG_IMPORT_LIBRARY libcurl-d_imp.lib
             HINTS ${CURL_INSTALL_ROOT} PATH_SUFFIXES lib NO_CACHE
+        )
+        # find DLLs
+        find_file(
+            CURL_LIBRARY libcurl.dll
+            HINTS ${CURL_INSTALL_ROOT} PATH_SUFFIXES bin NO_CACHE
+        )
+        find_file(
+            CURL_DEBUG_LIBRARY libcurl-d.dll
+            HINTS ${CURL_INSTALL_ROOT} PATH_SUFFIXES bin NO_CACHE
         )
     else()
         find_file(
@@ -177,6 +188,7 @@ macro(pdxka_find_curl)
         )
         set(CURL_DEBUG_LIBRARY ${CURL_LIBRARY})
     endif()
+    # check if CURL library is found
     if(CURL_LIBRARY STREQUAL "CURL_LIBRARY-NOTFOUND")
         # error if required, otherwise not found
         if(_PDXKA_CURL_REQUIRED)
@@ -185,12 +197,31 @@ macro(pdxka_find_curl)
             set(CURL_FOUND FALSE)
         endif()
     endif()
-    # only need to check debug library on Windows
-    if(WIN32 AND CURL_DEBUG_LIBRARY STREQUAL "CURL_DEBUG_LIBRARY-NOTFOUND")
-        if(_PDXKA_CURL_REQUIRED)
-            message(FATAL_ERROR "Unable to find the libcurl debug library")
-        else()
-            set(CURL_FOUND FALSE)
+    # on Windows, need to check both debug library and import libraries
+    if(WIN32)
+        if(CURL_DEBUG_LIBRARY STREQUAL "CURL_DEBUG_LIBRARY-NOTFOUND")
+            if(_PDXKA_CURL_REQUIRED)
+                message(FATAL_ERROR "Unable to find the libcurl debug library")
+            else()
+                set(CURL_FOUND FALSE)
+            endif()
+        endif()
+        if(CURL_IMPORT_LIBRARY STREQUAL "CURL_IMPORT_LIBRARY-NOTFOUND")
+            if(_PDXKA_CURL_REQUIRED)
+                message(FATAL_ERROR "Unable to find the libcurl import library")
+            else()
+                set(CURL_FOUND FALSE)
+            endif()
+        endif()
+        if(CURL_DEBUG_IMPORT_LIBRARY STREQUAL "CURL_DEBUG_IMPORT_LIBRARY-NOTFOUND")
+            if(_PDXKA_CURL_REQUIRED)
+                message(
+                    FATAL_ERROR
+                    "Unable to find the libcurl debug import library"
+                )
+            else()
+                set(CURL_FOUND FALSE)
+            endif()
         endif()
     endif()
     # only run if CURL_FOUND is true
@@ -347,12 +378,22 @@ macro(pdxka_find_curl)
     # if CURL_FOUND still true after matching components, we define targets
     # note that if running in script mode this is disabled
     if(CURL_FOUND AND NOT DEFINED CMAKE_SCRIPT_MODE_FILE)
-        add_library(CURL::libcurl INTERFACE IMPORTED)
-        # note: on Win32 the library names are actually different
-        target_link_libraries(
-            CURL::libcurl INTERFACE
-            $<IF:$<CONFIG:Debug>,${CURL_DEBUG_LIBRARY},${CURL_LIBRARY}>
-        )
+        add_library(CURL::libcurl SHARED IMPORTED)
+        target_include_directories(CURL::libcurl INTERFACE ${CURL_INCLUDE_DIRS})
+        # on Windows we have to specify both imported library and DLL location.
+        # note that release version is used for all config except debug
+        if(WIN32)
+            set_target_properties(
+                CURL::libcurl PROPERTIES
+                IMPORTED_IMPLIB_DEBUG ${CURL_DEBUG_IMPORT_LIBRARY}
+                IMPORTED_IMPLIB ${CURL_IMPORT_LIBRARY}
+                IMPORTED_LOCATION_DEBUG ${CURL_DEBUG_LIBRARY}
+                IMPORTED_LOCATION ${CURL_LIBRARY}
+            )
+        # otherwise, directly link to the library file
+        else()
+            target_link_libraries(CURL::libcurl INTERFACE ${CURL_LIBRARY})
+        endif()
     endif()
     # finally, done
 endmacro()
