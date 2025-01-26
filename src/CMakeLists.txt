@@ -16,8 +16,13 @@ endif()
 # -h, --help tests
 add_test(NAME ${_prog}_h COMMAND ${_prog} -h)
 add_test(NAME ${_prog}_help COMMAND ${_prog} --help)
+# test that -b can be specified with -h, --help. this in general is just to
+# test that manual parsing of CLI options don't skip the next arg after -b if
+# it is another CLI option that start with a hyphen.
+add_test(NAME ${_prog}_b_h COMMAND ${_prog} -b -h)
+add_test(NAME ${_prog}_b_help COMMAND ${_prog} -b --help)
 set_tests_properties(
-    ${_prog}_h ${_prog}_help PROPERTIES
+    ${_prog}_h ${_prog}_help ${_prog}_b_h ${_prog}_b_help PROPERTIES
     PASS_REGULAR_EXPRESSION "Prints the alt text for the most recent XKCD comic"
 )
 # -V, --version tests
