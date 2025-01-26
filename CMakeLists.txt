@@ -46,30 +46,24 @@ option(PDXKA_USE_BOOST_PO_CLI "Use Boost.ProgramOptions" ON)
 # determine if generator is multi-config
 get_property(PDXKA_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(PDXKA_IS_MULTI_CONFIG)
-    message(STATUS "Generator config: Multi")
+    message(STATUS "Build config: Multi")
+# for single-config, set CMAKE_BUILD_TYPE and PDXKA_BUILD_TYPE (used by
+# configure_file to configure version.h)
 else()
-    message(STATUS "Generator config: Single")
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Debug)
+    endif()
+    set(PDXKA_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+    message(STATUS "Build config: ${PDXKA_BUILD_TYPE}")
 endif()
 
 include(CTest)
 
-# default build type is Debug (single-config generators only)
-# FIXME: for multi-config generators this will be useless but is still used by
-# configure_file to generate version.h unfortunately
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
-endif()
-
-# build type maintains case
-set(PDXKA_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-if(NOT PDXKA_IS_MULTI_CONFIG)
-    message(STATUS "Build config: ${PDXKA_BUILD_TYPE}")
-endif()
 # indicate pdxka library build type
 if(BUILD_SHARED_LIBS)
-    message(STATUS "Library build: Shared")
+    message(STATUS "Build libraries: Shared")
 else()
-    message(STATUS "Library build: Static")
+    message(STATUS "Build libraries: Static")
 endif()
 # indicate if tests are being built
 if(BUILD_TESTS)
@@ -252,7 +246,7 @@ if(PDXKA_IS_MULTI_CONFIG)
                 -DPDXKA_MINOR_VERSION=${PDXKA_MINOR_VERSION}
                 -DPDXKA_PATCH_VERSION=${PDXKA_PATCH_VERSION}
                 -DPDXKA_VERSION=${PDXKA_VERSION}
-                -DPDXKA_BUILD_TYPE=${PDXKA_BUILD_TYPE}
+                -DPDXKA_BUILD_TYPE=$<CONFIG>
                 -DPDXKA_SYSTEM_NAME=${PDXKA_SYSTEM_NAME}
                 -DPDXKA_SYSTEM_VERSION=${PDXKA_SYSTEM_VERSION}
                 -DPDXKA_SYSTEM_ARCH=${PDXKA_SYSTEM_ARCH}
