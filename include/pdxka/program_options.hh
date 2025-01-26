@@ -69,13 +69,39 @@ bool parse_options(cliopt_map& map, int argc, char* argv[]);
 
 /**
  * Return the program's description text.
+ *
+ * When built with Boost.ProgramOptions this contains only a simple summary
+ * description. However, when built using manual command-line option parsing,
+ * this also contains all the help text for each command-line option.
  */
 inline const auto& program_description()
 {
   static std::string desc{
-    "Usage: " PDXKA_PROGNAME " [OPTION...]"
-    "\n\n"
+    "Usage: " PDXKA_PROGNAME
+#if PDXKA_USE_BOOST_PROGRAM_OPTIONS
+    " [OPTION...]\n"
+#else
+    " [-h] [-b[ ][BACK]] [-o] [-v] [-k]\n"
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
+    "\n"
     "Prints the alt text for the most recent XKCD comic."
+#if !PDXKA_USE_BOOST_PROGRAM_OPTIONS
+    "\n"
+    "\n"
+    "Options:\n"
+    "  -h, --help          Print this usage and exit\n"
+    "  -V, --version       Print version information and exit\n"
+    "\n"
+    "  -b[ ][BACK], --back[=][BACK]\n"
+    "                      Print alt text for the bth previous XKCD strip. If\n"
+    "                      not given a value, implicitly sets b=1.\n"
+    "\n"
+    "  -o, --one-line      Print alt text and attestation on one line.\n"
+    "  -v, --verbose       Allow cURL to print what's going on to stderr.\n"
+    "                      Useful for debugging or satisfying curiosity.\n"
+    "  -k, --insecure      Allow cURL to skip verification of the server's SSL\n"
+    "                      certificate. Try not to specify this."
+#endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
   };
   return desc;
 }

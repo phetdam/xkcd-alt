@@ -38,7 +38,7 @@ option_parse_result parse_options(int argc, char* argv[])
     (
       "back,b",
       po::value<unsigned int>()->default_value(0)->implicit_value(1),
-      "Print alt-text for bth previous XKCD strip. If not given a value, "
+      "Print alt text for bth previous XKCD strip. If not given a value, "
       "implicitly sets b=1."
     )
     (
@@ -125,9 +125,14 @@ bool parse_options(cliopt_map& opt_map, int argc, char* argv[])
     else if (arg == "-b" || arg == "--back") {
       // advance to find argument for number of strips, use 1 if none
       i++;
-      // allows other options following -b, --back without arguments
-      if (i >= argc || (std::strlen(argv[i]) && argv[i][0] == '-'))
+      // if no other arguments, use 1
+      if (i >= argc)
         opt_map.insert_or_assign("back", mapped_type{"1"});
+      // if another CLI option, use 1 and decrement i to not skip the option
+      else if (std::strlen(argv[i]) && argv[i][0] == '-') {
+        opt_map.insert_or_assign("back", mapped_type{"1"});
+        i--;
+      }
       // otherwise insert and allow overwriting
       else
         opt_map.insert_or_assign("back", mapped_type{argv[i]});

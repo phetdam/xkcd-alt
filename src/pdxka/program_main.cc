@@ -38,7 +38,7 @@ namespace {
  * @param opt_map Command-line option map from `pdxka::parse_options`
  * @returns Pair of `previous` and boolean indicating if the value is valid
  */
-std::pair<unsigned int, bool> extract_previous(pdxka::cliopt_map& opt_map)
+std::pair<unsigned int, bool> extract_previous(cliopt_map& opt_map)
 {
   // if not specified, we just return 0
   auto back_iter = opt_map.find("back");
@@ -89,7 +89,7 @@ std::pair<unsigned int, bool> extract_previous(pdxka::cliopt_map& opt_map)
 cliopts extract_args(int argc, char* argv[])
 {
 #if PDXKA_USE_BOOST_PROGRAM_OPTIONS
-  const auto parse_result = pdxka::parse_options(argc, argv);
+  const auto parse_result = parse_options(argc, argv);
   if (parse_result.exit_code)
     std::exit(parse_result.exit_code);
   // if help/version options were specified, print help/version and exit
@@ -98,7 +98,7 @@ cliopts extract_args(int argc, char* argv[])
     std::exit(EXIT_SUCCESS);
   }
   if (parse_result.map.count("version")) {
-    std::cout << pdxka::version_description() << std::endl;
+    std::cout << version_description() << std::endl;
     std::exit(EXIT_SUCCESS);
   }
   // extract variables from parse_result variable map
@@ -109,17 +109,17 @@ cliopts extract_args(int argc, char* argv[])
     parse_result.map["insecure"].as<bool>()
   };
 #else
-  pdxka::cliopt_map opt_map;
-  if (!pdxka::parse_options(opt_map, argc, argv))
+  cliopt_map opt_map;
+  if (!parse_options(opt_map, argc, argv))
     std::exit(EXIT_FAILURE);
   // if help/version options were specified, print help/version and exit
   if (opt_map.find("help") != opt_map.end()) {
     // TODO: make a proper program description later
-    std::cout << pdxka::program_description() << std::endl;
+    std::cout << program_description() << std::endl;
     std::exit(EXIT_SUCCESS);
   }
   if (opt_map.find("version") != opt_map.end()) {
-    std::cout << pdxka::version_description() << std::endl;
+    std::cout << version_description() << std::endl;
     std::exit(EXIT_SUCCESS);
   }
   // extract variables from options map
@@ -139,13 +139,13 @@ cliopts extract_args(int argc, char* argv[])
 int program_main(
   int argc,
   char* argv[],
-  const std::function<pdxka::curl_result(const cliopts&)>& rss_factory)
+  const std::function<curl_result(const cliopts&)>& rss_factory)
 {
   // parse and extract command-line arguments, printing error messages or
   // information output and exiting appropriately as necessary
   auto opts = extract_args(argc, argv);
   // get XKCD RSS as a string using cURL. this may be an actual network call,
-  // e.g. using pdxka::get_rss, or some mocked output (for testing)
+  // e.g. using get_rss, or some mocked output (for testing)
   auto res = rss_factory(opts);
   // if request error, just print the reason and exit
   PDXKA_CURL_NOT_OK(res.status) {
@@ -153,9 +153,9 @@ int program_main(
     return EXIT_FAILURE;
   }
   // try to get XKCD RSS as a vector of rss_items, throw on error
-  pdxka::rss_item_vector rss_items;
+  rss_item_vector rss_items;
   try {
-    rss_items = pdxka::to_item_vector(pdxka::parse_rss(res.payload));
+    rss_items = to_item_vector(parse_rss(res.payload));
   }
   catch (...) {
     std::cerr << boost::current_exception_diagnostic_information() << std::endl;
@@ -179,7 +179,7 @@ int program_main(
     std::cout << item.img_title() << " -- " << item.guid();
   // else print fortune-style
   else
-    std::cout << pdxka::line_wrap(item.img_title()) << "\n\t\t-- " << item.guid();
+    std::cout << line_wrap(item.img_title()) << "\n\t\t-- " << item.guid();
   // last newline + finally flush the buffer
   std::cout << std::endl;
   return EXIT_SUCCESS;
