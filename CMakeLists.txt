@@ -35,7 +35,6 @@ project(
 set(PDXKA_PROGNAME xkcd-alt)
 
 # support library built as shared by default
-# TODO: this should be set to OFF for Windows until we have DLL export ready
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 # build tests. defaults to ON since you should build tests
 option(BUILD_TESTS "Build project tests" ON)
