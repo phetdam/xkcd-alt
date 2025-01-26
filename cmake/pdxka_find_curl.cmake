@@ -388,12 +388,14 @@ macro(pdxka_find_curl)
                 IMPORTED_IMPLIB_DEBUG ${CURL_DEBUG_IMPORT_LIBRARY}
                 IMPORTED_IMPLIB ${CURL_IMPORT_LIBRARY}
                 IMPORTED_LOCATION_DEBUG ${CURL_DEBUG_LIBRARY}
-                IMPORTED_LOCATION ${CURL_LIBRARY}
             )
-        # otherwise, directly link to the library file
-        else()
-            target_link_libraries(CURL::libcurl INTERFACE ${CURL_LIBRARY})
         endif()
+        # otherwise, just need to set the library location
+        # note: technically we should set IMPORTED_SONAME too
+        set_target_properties(
+            CURL::libcurl PROPERTIES
+            IMPORTED_LOCATION ${CURL_LIBRARY}
+        )
     endif()
     # finally, done
 endmacro()
