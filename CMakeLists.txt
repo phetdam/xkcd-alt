@@ -14,18 +14,9 @@ cmake_minimum_required(VERSION 3.21)
 # Note on Windows you should use the Developer Command Prompt.
 #
 
-# set major, minor, patch versions + version string
-set(PDXKA_MAJOR_VERSION 0)
-set(PDXKA_MINOR_VERSION 1)
-set(PDXKA_PATCH_VERSION 0)
-set(
-    PDXKA_VERSION
-    ${PDXKA_MAJOR_VERSION}.${PDXKA_MINOR_VERSION}.${PDXKA_PATCH_VERSION}
-)
-
 project(
     xkcd-alt
-    VERSION ${PDXKA_VERSION}
+    VERSION 0.1.0
     DESCRIPTION "CLI tool to get the latest XKCD alt text"
     HOMEPAGE_URL "https://github.com/phetdam/xkcd-alt"
     LANGUAGES CXX
@@ -87,6 +78,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 # FIXME: deprecate this; not accurate for multi-config generators
 set(PDXKA_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
+# set version variables
+set(PDXKA_MAJOR_VERSION ${PROJECT_VERSION_MAJOR})
+set(PDXKA_MINOR_VERSION ${PROJECT_VERSION_MINOR})
+set(PDXKA_PATCH_VERSION ${PROJECT_VERSION_PATCH})
+set(PDXKA_VERSION ${PROJECT_VERSION})
 # set some system information variables used for the version info
 set(PDXKA_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 set(PDXKA_SYSTEM_VERSION ${CMAKE_SYSTEM_VERSION})
