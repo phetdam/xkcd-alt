@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(mock_program_main, T, argv_type_tuple)
   {
     pt::stream_diverter out_diverter{std::cout, out};
     pt::stream_diverter err_diverter{std::cerr, err_out};
-    ret = pdxka::program_main(T{}(), mock_rss_get);
+    ret = pt::program_main(T{}(), mock_rss_get);
   }
   BOOST_TEST_REQUIRE(
     ret == EXIT_SUCCESS,

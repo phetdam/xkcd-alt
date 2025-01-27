@@ -20,7 +20,6 @@
 #include "pdxka/program_main.hh"
 
 namespace pdxka {
-
 namespace testing {
 
 /**
@@ -302,8 +301,6 @@ struct is_argument_vector<argument_vector<Ns...>> : std::true_type {};
 template <typename T>
 inline constexpr bool is_argument_vector_v = is_argument_vector<T>::value;
 
-}  // namespace testing
-
 /**
  * `pdxka` CLI tool program main convenience overload.
  *
@@ -323,6 +320,7 @@ program_main(T&& argv, const rss_provider& provider)
   return program_main(argv.argc(), argv.argv(), provider);
 }
 
+}  // namespace testing
 }  // namespace pdxka
 
 #endif  // PDXKA_TESTING_PROGRAM_MAIN_HH_
