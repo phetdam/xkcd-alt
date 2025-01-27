@@ -5,6 +5,12 @@
  * @copyright MIT License
  */
 
+//
+// TODO:
+//
+// consider removing these tests as CTest handles the runtime version tests
+//
+
 #include "pdxka/version.h"
 
 #include <string>
@@ -80,6 +86,11 @@ void check_curl_version(const std::string& output)
 
 /**
  * Test that project's run-time libcurl version matches the actual version.
+ *
+ * @todo Once `testing/path.hh` generation is fixed no need to disable this
+ *  test on Windows. See `testing/path.hh` comments for why.
+ *
+ * @note Consider removing since CTest already runs this test.
  */
 BOOST_AUTO_TEST_CASE(curl_runtime_version, * utf::enable_if<!PDXKA_WIN32>())
 {

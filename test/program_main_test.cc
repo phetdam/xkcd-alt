@@ -95,9 +95,23 @@ struct argv_type_3 {
 };
 
 /**
+ * Callable object that returns the first `mock_program_main` input.
+ *
+ * This requests an XKCD strip alt text 1 day previous from today while also
+ * specifying this using `-b` with a separate value as an argument.
+ */
+struct argv_type_4 {
+  auto operator()() const
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "-b", "1");
+  }
+};
+
+/**
  * Input type tuple for the `mock_program_main` test.
  */
-using argv_type_tuple = std::tuple<argv_type_1, argv_type_2, argv_type_3>;
+using argv_type_tuple = std::
+  tuple<argv_type_1, argv_type_2, argv_type_3, argv_type_4>;
 
 }  // namespace
 
