@@ -7,6 +7,7 @@
 
 #include "pdxka/rss.hh"
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
