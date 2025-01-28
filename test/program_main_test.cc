@@ -108,10 +108,53 @@ struct argv_type_4 {
 };
 
 /**
+ * Callable object that returns the first `mock_program_main` input.
+ *
+ * This makes the 1 day previous alt text request using `--back`.
+ */
+struct argv_type_5 {
+  auto operator()() const
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "--back");
+  }
+};
+
+/**
+ * Callable object that returns the second `mock_program_main` input.
+ *
+ * This makes the 2 day previous alt text request using `--back`.
+ */
+struct argv_type_6 {
+  auto operator()() const
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "--back", "2");
+  }
+};
+
+/**
+ * Callable object that returns the third `mock_program_main` input.
+ *
+ * This makes the 3 day previous alt text request using `--back=3`.
+ */
+struct argv_type_7 {
+  auto operator()() const
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "--back=3");
+  }
+};
+
+/**
  * Input type tuple for the `mock_program_main` test.
  */
-using argv_type_tuple = std::
-  tuple<argv_type_1, argv_type_2, argv_type_3, argv_type_4>;
+using argv_type_tuple = std::tuple<
+  argv_type_1,
+  argv_type_2,
+  argv_type_3,
+  argv_type_4,
+  argv_type_5,
+  argv_type_6,
+  argv_type_7
+>;
 
 }  // namespace
 
