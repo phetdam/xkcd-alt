@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.21)
 #
 
 project(
-    xkcd-alt
+    XkcdAlt
     VERSION 0.1.0
     DESCRIPTION "CLI tool to get the latest XKCD alt text"
     HOMEPAGE_URL "https://github.com/phetdam/xkcd-alt"
@@ -227,6 +227,8 @@ message(STATUS "Generated ${PDXKA_FEATURES_HEADER_RELATIVE}")
 set(PDXKA_VERSION_HEADER pdxka/version.h)
 # for multi-config generators, this must be a pre-build step, so we use a
 # custom target to ensure that this step can be done before pdxka building
+# note: if version.h will become a public header we will probably want to also
+# generate a separate config.hh that will contain the non-version information
 if(PDXKA_IS_MULTI_CONFIG)
     # helper path
     set(_version_h_path "include/${PDXKA_VERSION_HEADER}")
