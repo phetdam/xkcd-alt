@@ -91,3 +91,45 @@ set_property(
     TEST pdxka_find_curl_test_3 PROPERTY
     PASS_REGULAR_EXPRESSION "Could NOT find requested libcurl component"
 )
+
+# path to test install directory
+set(_test_install_dir ${PDXKA_BINARY_DIR}/test_install)
+
+# helper variable
+set(_prog ${PDXKA_PROGNAME})
+# pre-install test to remove the previous install directory
+# note: for multi-config generatores, this overwrites the executable
+add_test(
+    NAME ${_prog}_prepare_install_test
+    COMMAND ${CMAKE_COMMAND} -E rm -rf ${_test_install_dir}
+)
+# sets up the test_install_clean fixture
+set_tests_properties(
+    ${_prog}_prepare_install_test PROPERTIES
+    FIXTURES_SETUP test_install_clean
+)
+
+# test project installation
+# multi-config needs --config argument
+if(PDXKA_IS_MULTI_CONFIG)
+    add_test(
+        NAME ${_prog}_install_test
+        COMMAND ${CMAKE_COMMAND}
+                --install ${PDXKA_BINARY_DIR} --prefix ${_test_install_dir}
+                --config $<CONFIG>
+    )
+else()
+    add_test(
+        NAME ${_prog}_install_test
+        COMMAND ${CMAKE_COMMAND}
+                --install ${PDXKA_BINARY_DIR} --prefix ${_test_install_dir}
+    )
+endif()
+# requires clean step already run + set up test_install fixture
+set_tests_properties(
+    ${_prog}_install_test PROPERTIES
+    FIXTURES_SETUP test_install
+    FIXTURES_REQUIRED test_install_clean
+)
+
+unset(_prog)
