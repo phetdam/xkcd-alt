@@ -13,6 +13,16 @@ target_link_libraries(${_prog} PRIVATE pdxka)
 if(WIN32)
     pdxka_copy_runtime_dlls(${_prog})
 endif()
+
+# install rule + target export rule
+install(TARGETS ${_prog} EXPORT pdxka_exports)
+install(
+    EXPORT pdxka_exports
+    DESTINATION ${PDXKA_CMAKE_PREFIX}
+    NAMESPACE ${PROJECT_NAME}::
+    FILE ${PROJECT_NAME}-targets.cmake
+)
+
 # -h, --help tests
 add_test(NAME ${_prog}_h COMMAND ${_prog} -h)
 add_test(NAME ${_prog}_help COMMAND ${_prog} --help)

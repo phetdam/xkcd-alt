@@ -273,6 +273,8 @@ endif()
 
 # test or other data directory root
 set(PDXKA_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
+# prefix for CMake files install
+set(PDXKA_CMAKE_PREFIX lib/cmake/${PROJECT_NAME})
 
 add_subdirectory(src)
 
@@ -294,3 +296,27 @@ if(BUILD_TESTS)
     message(STATUS "Generated ${PDXKA_TEST_PATHS_HEADER_RELATIVE}")
     add_subdirectory(test)
 endif()
+
+include(CMakePackageConfigHelpers)
+
+# configure package config file
+set(PDXKA_CONFIG_FILE ${PROJECT_NAME}-config.cmake)
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PDXKA_CONFIG_FILE}.in
+    ${PDXKA_BINARY_DIR}/${PDXKA_CONFIG_FILE}
+    INSTALL_DESTINATION ${PDXKA_CMAKE_PREFIX}
+)
+# configure version selection file
+set(PDXKA_CONFIG_VERSION_FILE ${PROJECT_NAME}-config-version.cmake)
+write_basic_package_version_file(
+    ${PDXKA_BINARY_DIR}/${PDXKA_CONFIG_VERSION_FILE}
+    VERSION ${PDXKA_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+# install rule for the config and version config files
+install(
+    FILES
+        ${PDXKA_BINARY_DIR}/${PDXKA_CONFIG_FILE}
+        ${PDXKA_BINARY_DIR}/${PDXKA_CONFIG_VERSION_FILE}
+    DESTINATION ${PDXKA_CMAKE_PREFIX}
+)

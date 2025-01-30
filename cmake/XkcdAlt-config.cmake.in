@@ -1,0 +1,9 @@
+# XkcdAlt-config.cmake
+#
+# XkcdAlt CMake config script
+#
+
+@PACKAGE_INIT@
+
+# export targets
+include(${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake)

@@ -30,3 +30,6 @@ endif()
 if(WIN32 AND BUILD_SHARED_LIBS)
     pdxka_copy_runtime_dlls(pdxka)
 endif()
+
+# install rule (not exported + no public headers)
+install(TARGETS pdxka)
