@@ -126,15 +126,13 @@ void check_boost_details(const std::string& output, std::size_t pos)
  * We are just interested in checking that `PDXKA_USE_BOOST_PROGRAM_OPTIONS` is
  * consistent with the run-time reporting of the Boost components used.
  *
- * @note Currently broken as `binary_dir()` is inaccurate when using
- *  multi-config generators like we do on Windows. See `testing/path.hh.in`
- *  comments on `PDXKA_BINARY_DIR` and why it is inaccurate.
+ * @note Consider removing since CTest already runs this test.
  */
-BOOST_AUTO_TEST_CASE(bpo_check, * utf::enable_if<!PDXKA_WIN32>())
+BOOST_AUTO_TEST_CASE(bpo_check)
 {
   namespace pt = pdxka::testing;
   // invoke program with absolute path (so working directory is irrelevant)
-  auto output = pt::run_process(pt::binary_dir() / PDXKA_PROGNAME, "-V");
+  auto output = pt::run_process(pt::program_path(), "-V");
   // require that process succeeded
   BOOST_TEST_REQUIRE(
     !output.error_code(),

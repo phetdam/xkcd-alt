@@ -10,6 +10,8 @@
 
 #include <boost/filesystem/path.hpp>
 
+#include "pdxka/version.h"
+
 /**
  * Build output directory containing all the binary artifacts.
  *
@@ -41,6 +43,20 @@ inline const auto& data_dir()
 {
   static boost::filesystem::path dir{PDXKA_DATA_DIR};
   return dir;
+}
+
+/**
+ * Return path to per-config built command-line executable.
+ */
+inline const auto& program_path()
+{
+  static auto path{
+    binary_dir() / PDXKA_PROGNAME
+#ifdef _WIN32
+    ".exe"
+#endif  // _WIN32
+  };
+  return path;
 }
 
 }  // namespace testing

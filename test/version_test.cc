@@ -87,16 +87,13 @@ void check_curl_version(const std::string& output)
 /**
  * Test that project's run-time libcurl version matches the actual version.
  *
- * @todo Once `testing/path.hh` generation is fixed no need to disable this
- *  test on Windows. See `testing/path.hh` comments for why.
- *
  * @note Consider removing since CTest already runs this test.
  */
-BOOST_AUTO_TEST_CASE(curl_runtime_version, * utf::enable_if<!PDXKA_WIN32>())
+BOOST_AUTO_TEST_CASE(curl_runtime_version)
 {
   namespace pt = pdxka::testing;
   // invoke program with absolute path (so working directory is irrelevant)
-  auto output = pt::run_process(pt::binary_dir() / PDXKA_PROGNAME, "-V");
+  auto output = pt::run_process(pt::program_path(), "-V");
   // require that process succeeded
   BOOST_TEST_REQUIRE(
     !output.error_code(),

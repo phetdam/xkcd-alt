@@ -61,6 +61,8 @@
 
 /**
  * Project binary executable name.
+ *
+ * This does not contain the platform-specific executable suffix.
  */
 #define PDXKA_PROGNAME "@PDXKA_PROGNAME@"
 
