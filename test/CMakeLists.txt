@@ -14,6 +14,10 @@ target_link_libraries(
     pdxka_test PRIVATE
     Boost::filesystem Boost::unit_test_framework CURL::libcurl pdxka
 )
+# if multi-config, also need to use per-config testing/path.hh config step
+if(PDXKA_IS_MULTI_CONFIG)
+    add_dependencies(pdxka_test pdxka_testing_path_hh)
+endif()
 # on Windows we need to define NOMINMAX since the Windows min() and max()
 # macros are somehow leaking in testing/program_main.hh
 # note: can get rid of the _WIN32_WINNT not being defined Boost.Asio warning by

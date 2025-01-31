@@ -280,7 +280,7 @@ if(PDXKA_IS_MULTI_CONFIG)
             ${CMAKE_COMMAND}
                 -DPDXKA_VERSION_HEADER_IN=${PDXKA_INCLUDE}/${PDXKA_VERSION_HEADER}.in
                 # generator expression for correct per-config output
-                -DPDXKA_VERSION_HEADER=${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${_version_h_path}
+                -DPDXKA_VERSION_HEADER=${PDXKA_BINARY_DIR}/$<CONFIG>/${_version_h_path}
                 # variables consumed by version.h
                 -DPDXKA_MAJOR_VERSION=${PDXKA_MAJOR_VERSION}
                 -DPDXKA_MINOR_VERSION=${PDXKA_MINOR_VERSION}
@@ -297,8 +297,8 @@ if(PDXKA_IS_MULTI_CONFIG)
                 -DBoost_MINOR_VERSION=${Boost_MINOR_VERSION}
                 -DBoost_SUBMINOR_VERSION=${Boost_SUBMINOR_VERSION}
                 -DCURL_VERSION_STRING=${CURL_VERSION_STRING}
-                -P "${PDXKA_CMAKE_MODULE_DIR}/pdxka_configure_version.cmake"
-        BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${_version_h_path}"
+                -P ${PDXKA_CMAKE_MODULE_DIR}/pdxka_configure_version.cmake
+        BYPRODUCTS "${PDXKA_BINARY_DIR}/$<CONFIG>/${_version_h_path}"
         COMMENT "Generating $<CONFIG> ${PDXKA_VERSION_HEADER}"
         VERBATIM
     )
@@ -322,20 +322,36 @@ add_subdirectory(src)
 
 if(BUILD_TESTS)
     # generate path.hh header for test paths
-    # FIXME: same issue that version.h used to have, which is that WSL/Windows
-    # has different results so builds will affect each other and that with
-    # multi-config generators the PDXKA_BINARY_DIR is inaccurate
-    set(PDXKA_TEST_PATHS_HEADER ${PDXKA_INCLUDE}/pdxka/testing/path.hh)
-    configure_file(
-        ${PDXKA_TEST_PATHS_HEADER}.in ${PDXKA_TEST_PATHS_HEADER}
-        @ONLY NEWLINE_STYLE LF
-    )
-    cmake_path(
-        RELATIVE_PATH PDXKA_TEST_PATHS_HEADER
-        BASE_DIRECTORY ${PDXKA_INCLUDE}
-        OUTPUT_VARIABLE PDXKA_TEST_PATHS_HEADER_RELATIVE
-    )
-    message(STATUS "Generated ${PDXKA_TEST_PATHS_HEADER_RELATIVE}")
+    set(PDXKA_TEST_PATHS_HEADER pdxka/testing/path.hh)
+    # must be pre-build step for multi-config generators
+    if(PDXKA_IS_MULTI_CONFIG)
+        # helper path
+        set(_testing_path_hh "include/${PDXKA_TEST_PATHS_HEADER}")
+        add_custom_target(
+            pdxka_testing_path_hh
+            COMMAND ${CMAKE_COMMAND}
+                    -DPDXKA_TEST_PATHS_HEADER_IN=${PDXKA_INCLUDE}/${PDXKA_TEST_PATHS_HEADER}.in
+                    # generator expression for correct per-config output
+                    -DPDXKA_TEST_PATHS_HEADER=${PDXKA_BINARY_DIR}/$<CONFIG>/${_testing_path_hh}
+                    # variables consumed by testing/path.hh
+                    -DPDXKA_BINARY_DIR=${PDXKA_BINARY_DIR}/$<CONFIG>
+                    -DPDXKA_DATA_DIR=${PDXKA_DATA_DIR}
+                    -P ${PDXKA_CMAKE_MODULE_DIR}/pdxka_configure_test_paths.cmake
+            BYPRODUCTS "${PDXKA_BINARY_DIR}/$<CONFIG>/${_testing_path_hh}"
+            COMMENT "Generating $<CONFIG> ${PDXKA_TEST_PATHS_HEADER}"
+            VERBATIM
+        )
+        unset(_testing_path_hh)
+    # configure_file from current CMake process works for single-config
+    else()
+        configure_file(
+            "${PDXKA_INCLUDE}/${PDXKA_TEST_PATHS_HEADER}.in"
+            "include/${PDXKA_TEST_PATHS_HEADER}"
+            @ONLY NEWLINE_STYLE LF
+        )
+        message(STATUS "Generated ${PDXKA_TEST_PATHS_HEADER}")
+    endif()
+    # add C++ and CTest tests
     add_subdirectory(test)
 endif()
 

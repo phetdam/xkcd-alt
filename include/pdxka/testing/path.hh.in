@@ -13,9 +13,7 @@
 /**
  * Build output directory containing all the binary artifacts.
  *
- * @todo For multi-config generators like Visual Studio this does not contain
- *  the per-config subdirectory that is appended. This can be fixed if we just
- *  remove the per-config subdirectory but this has not been finalized yet.
+ * For multi-config generators this contains the per-config subdirectory too.
  */
 #define PDXKA_BINARY_DIR "@PDXKA_BINARY_DIR@"
 
