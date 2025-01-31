@@ -132,4 +132,34 @@ set_tests_properties(
     FIXTURES_REQUIRED test_install_clean
 )
 
+# path to test CMake build directory
+set(_test_cmake_dir ${PDXKA_BINARY_DIR}/test_cmake_usage)
+
+# pre-CMake usage test to remove the previous CMake build dirctory
+add_test(
+    NAME ${_prog}_prepare_cmake_usage
+    COMMAND ${CMAKE_COMMAND} -E rm -rf ${_test_cmake_dir}
+)
+# sets up cmake_usage_clean fixture (note: can be done in parallel to install)
+set_tests_properties(
+    ${_prog}_prepare_cmake_usage PROPERTIES
+    FIXTURES_SETUP test_cmake_usage_clean
+)
+
+# test CMake configuration step
+add_test(
+    NAME ${_prog}_cmake_config_test
+    COMMAND ${CMAKE_COMMAND}
+            -S ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_cmake_usage_test
+            -B ${_test_cmake_dir}
+            -DXkcdAlt_ROOT=${_test_install_dir}
+            -DPDXKA_FIND_VERSION=${PROJECT_VERSION}
+)
+# requires install + clean CMake build directory + sets up config fixture
+set_tests_properties(
+    ${_prog}_cmake_config_test PROPERTIES
+    FIXTURES_SETUP test_cmake_config
+    FIXTURES_REQUIRED "test_install;tset_cmake_usage_clean"
+)
+
 unset(_prog)
