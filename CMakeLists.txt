@@ -34,6 +34,47 @@ option(ENABLE_ASAN "Enable AddressSanitizer instrumentation" OFF)
 # use Boost.ProgramOptions for CLI argument parsing
 # note: prefer to disable so Boost is not needed as a run-time dependency
 option(PDXKA_USE_BOOST_PO_CLI "Use Boost.ProgramOptions" OFF)
+# build in release mode, e.g. no build info suffix
+option(PDXKA_IS_RELEASE "Indicate build is a true release build" OFF)
+
+# find Git
+find_package(Git)
+if(Git_FOUND)
+    message(STATUS "Git version: ${GIT_VERSION_STRING}")
+else()
+    message(STATUS "Git version: None")
+endif()
+
+# if release build, empty build info suffix
+if(PDXKA_IS_RELEASE)
+    set(PDXKA_VERSION_INFO "")
+    message(STATUS "Build tag: None")
+# else, attempt to use Git hash
+elseif(Git_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+        TIMEOUT 5
+        RESULT_VARIABLE _cur_rev_res
+        OUTPUT_VARIABLE _cur_rev
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # failed
+    if(_cur_rev_res)
+        message(WARNING "git rev-parse failed; using -DEV as build tag")
+    # otherwise, use + print output
+    else()
+        set(PDXKA_VERSION_INFO "-${_cur_rev}")
+        message(STATUS "Build tag: ${PDXKA_VERSION_INFO}")
+    endif()
+    # unset temp variables
+    unset(_cur_rev_res)
+    unset(_cur_rev)
+endif()
+# if not build tag defined (no Git, rev-parse failed), use -DEV + print
+if(NOT DEFINED PDXKA_VERSION_INFO)
+    set(PDXKA_VERSION_INFO "-DEV")
+    message(STATUS "Build tag: ${PDXKA_VERSION_INFO}")
+endif()
 
 # determine if generator is multi-config
 get_property(PDXKA_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -83,7 +124,7 @@ set(PDXKA_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(PDXKA_MAJOR_VERSION ${PROJECT_VERSION_MAJOR})
 set(PDXKA_MINOR_VERSION ${PROJECT_VERSION_MINOR})
 set(PDXKA_PATCH_VERSION ${PROJECT_VERSION_PATCH})
-set(PDXKA_VERSION ${PROJECT_VERSION})
+set(PDXKA_VERSION ${PROJECT_VERSION}${PDXKA_VERSION_INFO})
 # set some system information variables used for the version info
 set(PDXKA_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 set(PDXKA_SYSTEM_VERSION ${CMAKE_SYSTEM_VERSION})

@@ -28,7 +28,14 @@
 #define PDXKA_PATCH_VERSION @PDXKA_PATCH_VERSION@
 
 /**
- * Project version string literal.
+ * Project build version info.
+ *
+ * For release builds this is empty.
+ */
+#define PDXKA_VERSION_INFO "@PDXKA_VERSION_INFO@"
+
+/**
+ * Project version string literal with version info.
  */
 #define PDXKA_VERSION_STRING "@PDXKA_VERSION@"
 
