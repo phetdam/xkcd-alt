@@ -32,7 +32,8 @@ option(BUILD_TESTS "Build project tests" ON)
 # enable AddressSanitizer
 option(ENABLE_ASAN "Enable AddressSanitizer instrumentation" OFF)
 # use Boost.ProgramOptions for CLI argument parsing
-option(PDXKA_USE_BOOST_PO_CLI "Use Boost.ProgramOptions" ON)
+# note: prefer to disable so Boost is not needed as a run-time dependency
+option(PDXKA_USE_BOOST_PO_CLI "Use Boost.ProgramOptions" OFF)
 
 # determine if generator is multi-config
 get_property(PDXKA_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
