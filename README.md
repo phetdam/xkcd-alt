@@ -20,7 +20,6 @@ Options:
                       Useful for debugging or satisfying curiosity.
   -k, --insecure      Allow cURL to skip verification of the server's SSL
                       certificate. Try not to specify this.
-
 ```
 
 ## Dependencies
