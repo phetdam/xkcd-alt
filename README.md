@@ -32,8 +32,8 @@ unless building with a static libcurl library.
 [Boost.ProgramOptions](https://theboostcpplibraries.com/boost.program_options)
 1.71+ is an optional compile-time and run-time dependency, required only if
 during build time it is requested as the backing implementation for
-command-line option parsing. The default implementation is a hand-written
-command-line option parsing scheme.
+command-line option parsing. The default implementation is hand-written, which
+removes any runtime dependencies on Boost libraries.
 
 Note that if Boost.ProgramOptions is used the usage printout will look a bit
 different.
