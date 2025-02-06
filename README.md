@@ -3,33 +3,40 @@
 A CLI tool for printing the daily [XKCD](https://xkcd.com/) alt text one-liner.
 
 ```
-Usage: xkcd-alt [OPTION...]
+Usage: xkcd-alt [-h] [-b[ ][BACK]] [-o] [-v] [-k]
 
 Prints the alt text for the most recent XKCD comic.
 
-General options:
-  -b [ --back ] [=arg(=1)] (=0) Print alt-text for bth previous XKCD strip. If
-                                not given a value, implicitly sets b=1.
-  -o [ --one-line ]             Print alt text and attestation on one line.
+Options:
+  -h, --help          Print this usage and exit
+  -V, --version       Print version information and exit
 
-Debug options:
-  -v [ --verbose ]              Allow cURL to print what's going on to stderr.
-                                Useful for debugging or satisfying curiosity.
-  -k [ --insecure ]             Allow cURL to skip verification of the server's
-                                SSL certificate. Try not to specify this.
+  -b[ ][BACK], --back[=][BACK]
+                      Print alt text for the bth previous XKCD strip. If
+                      not given a value, implicitly sets b=1.
 
-Other options:
-  -h [ --help ]                 Print this usage and exit
-  -V [ --version ]              Print version information and exit
+  -o, --one-line      Print alt text and attestation on one line.
+  -v, --verbose       Allow cURL to print what's going on to stderr.
+                      Useful for debugging or satisfying curiosity.
+  -k, --insecure      Allow cURL to skip verification of the server's SSL
+                      certificate. Try not to specify this.
+
 ```
 
 ## Dependencies
 
-[Boost](https://www.boost.org/) 1.71+ headers,
-[Boost.ProgramOptions](https://theboostcpplibraries.com/boost.program_options)
-1.71+, and [libcurl](https://curl.se/libcurl/) 7.68+.
+[Boost](https://www.boost.org/) 1.71+ headers and
+[libcurl](https://curl.se/libcurl/) 7.68+. libcurl is a runtime dependency
+unless building with a static libcurl library.
 
-In the future, the dependence on Boost.ProgramOptions may be removed.
+[Boost.ProgramOptions](https://theboostcpplibraries.com/boost.program_options)
+1.71+ is an optional compile-time and run-time dependency, required only if
+during build time it is requested as the backing implementation for
+command-line option parsing. The default implementation is a hand-written
+command-line option parsing scheme.
+
+Note that if Boost.ProgramOptions is used the usage printout will look a bit
+different.
 
 ## Building from source
 
