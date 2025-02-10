@@ -19,6 +19,7 @@
 #include <curl/curl.h>
 
 #include "pdxka/common.h"
+#include "pdxka/warnings.h"
 
 namespace pdxka {
 
@@ -184,7 +185,11 @@ public:
     // perform thread-safe libcurl global init (no-op if already initialized)
     init_curl();
     // get new easy handle. if nullptr, error
+// silence MSVC C4706 on assignment in conditional
+PDXKA_MSVC_WARNING_PUSH()
+PDXKA_MSVC_WARNING_DISABLE(4706)
     if (!(handle_ = curl_easy_init()))
+PDXKA_MSVC_WARNING_POP()
       throw std::runtime_error{
         PDXKA_PRETTY_FUNCTION_NAME + std::string{": curl_easy_init errored"}
       };

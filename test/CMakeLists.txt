@@ -31,6 +31,9 @@ if(WIN32)
         pdxka_test PRIVATE
         NOMINMAX BOOST_USE_WINDOWS_H WIN32_LEAN_AND_MEAN
     )
+    # disable C5204 emitted from pplwin.h (probably because this header is used
+    # by Boost.ProgramOptions; not entirely sure however)
+    target_compile_options(pdxka_test PRIVATE /wd5204)
     # note: although we fixed the issue with the testing/program_main.hh
     # argument_vector not having the proper copy semantics (see copy ctor
     # comments for details), without /permissive- Visual Studio 2022 calls the

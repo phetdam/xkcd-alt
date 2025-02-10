@@ -13,6 +13,8 @@
 #include <boost/test/unit_test.hpp>
 #include <curl/curl.h>
 
+#include "pdxka/warnings.h"
+
 // libpdxka library tests
 BOOST_AUTO_TEST_SUITE(libpdxka)
 
@@ -27,7 +29,11 @@ BOOST_AUTO_TEST_CASE(curl_err_handler_test)
   // use too many redirects error to drive error handle
   std::string reason;
   char errbuf[] = "mock too many redirects";
+// silence C3147 constant conditional
+PDXKA_MSVC_WARNING_PUSH()
+PDXKA_MSVC_WARNING_DISABLE(4127)
   PDXKA_CURL_ERR_HANDLER(CURLE_TOO_MANY_REDIRECTS, reason, errbuf, done);
+PDXKA_MSVC_WARNING_POP()
   BOOST_TEST_FAIL("PDXKA_CURL_ERR_HANDLER failed to jump");
 done:
   BOOST_TEST(true);
