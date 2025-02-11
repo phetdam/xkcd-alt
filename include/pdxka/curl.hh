@@ -300,8 +300,8 @@ inline std::size_t curl_writer(
   // since incoming is not NULL-terminated, just put each char into stream. C
   // code doesn't know how to handle exceptions, so wrap in try/catch
   try {
-    auto sstream = static_cast<std::stringstream*>(stream);
-    for (; n < n_items; n++) sstream->put(incoming[n]);
+    for (; n < n_items; n++)
+      static_cast<std::stringstream*>(stream)->put(incoming[n]);
   }
   catch (...) {
     std::cerr << PDXKA_PRETTY_FUNCTION_NAME << ": " <<
@@ -331,7 +331,7 @@ curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
   // set cURL error buffer, callback writer function, and the write target
   char errbuf[CURL_ERROR_SIZE];
   curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, &errbuf);
-  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, detail::curl_writer);
+  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, &detail::curl_writer);
   curl_easy_setopt(handle, CURLOPT_WRITEDATA, &stream);
   // set URL to make GET request to (errors if no heap space left)
   status = curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
