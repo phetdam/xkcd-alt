@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include <boost/exception/diagnostic_information.hpp>
 #include <curl/curl.h>
@@ -172,6 +173,9 @@ inline void init_curl(long flags = CURL_GLOBAL_DEFAULT)
  */
 class curl_handle {
 public:
+// silence MSVC C4706 on assignment in curl_handle conditional
+PDXKA_MSVC_WARNING_PUSH()
+PDXKA_MSVC_WARNING_DISABLE(4706)
   /**
    * Ctor.
    *
@@ -185,9 +189,6 @@ public:
     // perform thread-safe libcurl global init (no-op if already initialized)
     init_curl();
     // get new easy handle. if nullptr, error
-// silence MSVC C4706 on assignment in conditional
-PDXKA_MSVC_WARNING_PUSH()
-PDXKA_MSVC_WARNING_DISABLE(4706)
     if (!(handle_ = curl_easy_init()))
 PDXKA_MSVC_WARNING_POP()
       throw std::runtime_error{
@@ -205,9 +206,9 @@ PDXKA_MSVC_WARNING_POP()
    *
    * @param other Handle to transfer ownership from
    */
-  curl_handle(curl_handle&& other) noexcept : handle_{other.handle_}
+  curl_handle(curl_handle&& other) noexcept
   {
-    other.handle_ = nullptr;
+    move(std::move(other));
   }
 
   /**
@@ -218,8 +219,7 @@ PDXKA_MSVC_WARNING_POP()
   auto& operator=(curl_handle&& other) noexcept
   {
     destroy_handle();
-    handle_ = other.handle_;
-    other.handle_ = nullptr;
+    move(std::move(other));
     return *this;
   }
 
@@ -251,6 +251,17 @@ PDXKA_MSVC_WARNING_POP()
 
 private:
   CURL* handle_;
+
+  /**
+   * Move from the other handle.
+   *
+   * The other handle's raw handle is copied and then zeroed.
+   */
+  void move(curl_handle&& other) noexcept
+  {
+    handle_ = other.handle_;
+    other.handle_ = nullptr;
+  }
 
   /**
    * Clean up the easy handle if it is still being used.
