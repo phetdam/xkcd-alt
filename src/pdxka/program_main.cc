@@ -21,6 +21,7 @@
 #include "pdxka/program_options.hh"
 #include "pdxka/rss.hh"
 #include "pdxka/string.hh"
+#include "pdxka/warnings.h"
 
 #if !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 #include <stdexcept>
@@ -73,32 +74,40 @@ std::pair<unsigned int, bool> extract_previous(cliopt_map& opt_map)
 #endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
 
 /**
+ * Continue states after extracting arguments with `extract_args`.
+ */
+enum class post_extract_state {
+  exit_success,
+  exit_failure,
+  proceed
+};
+
+/**
  * Parse the command-line arguments and extract the relevant argument values.
  *
- * If there are any errors processing arguments `false` is returned. Any
- * messages will be printed to standard output or standard error.
+ * If there are any errors processing arguments the `post_extract_state` value
+ * exit_failure` is returned. Any messages will be printed to stdout/stderr.
  *
  * Uses Boost or the hand-wrapped argument parsing depending on compilation.
  *
  * @param opts Command-line option struct
  * @param argc Argument count from `main()`
  * @param argv Argument vector from `main()`
- * @returns `true` on success, `false` on error
  */
-bool extract_args(cliopts& opts, int argc, char* argv[])
+auto extract_args(cliopts& opts, int argc, char* argv[])
 {
 #if PDXKA_USE_BOOST_PROGRAM_OPTIONS
-  const auto parse_result = parse_options(argc, argv);
+  auto parse_result = parse_options(argc, argv);
   if (parse_result.exit_code)
-    return false;
+    return post_extract_state::exit_failure;
   // if help/version options were specified, print help/version and exit
   if (parse_result.map.count("help")) {
     std::cout << parse_result.description << std::endl;
-    return true;
+    return post_extract_state::exit_success;
   }
   if (parse_result.map.count("version")) {
     std::cout << version_description() << std::endl;
-    return true;
+    return post_extract_state::exit_success;
   }
   // extract variables from parse_result variable map
   opts = {
@@ -110,27 +119,27 @@ bool extract_args(cliopts& opts, int argc, char* argv[])
 #else
   cliopt_map opt_map;
   if (!parse_options(opt_map, argc, argv))
-    return false;
+    return post_extract_state::exit_failure;
   // if help/version options were specified, print help/version and exit
   if (opt_map.find("help") != opt_map.end()) {
     std::cout << program_description() << std::endl;
-    return true;
+    return post_extract_state::exit_success;
   }
   if (opt_map.find("version") != opt_map.end()) {
     std::cout << version_description() << std::endl;
-    return true;
+    return post_extract_state::exit_success;
   }
   // extract variables from options map
   bool one_line = (opt_map.find("one_line") != opt_map.end());
   auto [previous, previous_valid] = extract_previous(opt_map);
   if (!previous_valid)
-    return false;
+    return post_extract_state::exit_failure;
   bool verbose = (opt_map.find("verbose") != opt_map.end());
   bool insecure = (opt_map.find("insecure") != opt_map.end());
   // done, populate struct
   opts = {one_line, previous, verbose, insecure};
 #endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
-  return true;
+  return post_extract_state::proceed;
 }
 
 }  // namespace
@@ -143,8 +152,20 @@ int program_main(
   // parse and extract command-line arguments, printing error messages or
   // information output and exiting appropriately as necessary
   cliopts opts;
-  if (!extract_args(opts, argc, argv))
-    return EXIT_FAILURE;
+  switch (extract_args(opts, argc, argv)) {
+    case post_extract_state::exit_success:
+      return EXIT_SUCCESS;
+    case post_extract_state::exit_failure:
+      return EXIT_FAILURE;
+    // no-op default case added to appease compilers
+// but MSVC will still complain about no explicit handling
+PDXKA_MSVC_WARNING_PUSH()
+PDXKA_MSVC_WARNING_DISABLE(4061)
+    default:
+      break;
+  }
+// note: have to pop warning state *after* the brace
+PDXKA_MSVC_WARNING_POP()
   // get XKCD RSS as a string using cURL. this may be an actual network call,
   // e.g. using get_rss, or some mocked output (for testing)
   auto res = rss_factory(opts);

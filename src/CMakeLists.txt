@@ -43,5 +43,15 @@ set_tests_properties(
     PASS_REGULAR_EXPRESSION
     "libcurl/${CURL_VERSION_STRING} libboost/${Boost_VERSION_STRING}"
 )
+# if -h, --help or -V, --version tests actually get RSS, error
+set_tests_properties(
+    ${_prog}_h
+    ${_prog}_help
+    ${_prog}_b_h
+    ${_prog}_b_help
+    ${_prog}_V
+    ${_prog}_version PROPERTIES
+    FAIL_REGULAR_EXPRESSION "-- https://xkcd.com"
+)
 
 unset(_prog)
