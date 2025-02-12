@@ -75,34 +75,33 @@ std::pair<unsigned int, bool> extract_previous(cliopt_map& opt_map)
 /**
  * Parse the command-line arguments and extract the relevant argument values.
  *
- * If there is an error processing arguments program exits with `EXIT_FAILURE`.
- * If the `-h, --help` or `-V, --version` arguments are specified then the
- * corresponding help or version output is printed to standard output and the
- * program will exit with `EXIT_SUCCESS` instead.
+ * If there are any errors processing arguments `false` is returned. Any
+ * messages will be printed to standard output or standard error.
  *
  * Uses Boost or the hand-wrapped argument parsing depending on compilation.
  *
+ * @param opts Command-line option struct
  * @param argc Argument count from `main()`
  * @param argv Argument vector from `main()`
- * @returns Struct holding all the parsed command-line options
+ * @returns `true` on success, `false` on error
  */
-cliopts extract_args(int argc, char* argv[])
+bool extract_args(cliopts& opts, int argc, char* argv[])
 {
 #if PDXKA_USE_BOOST_PROGRAM_OPTIONS
   const auto parse_result = parse_options(argc, argv);
   if (parse_result.exit_code)
-    std::exit(parse_result.exit_code);
+    return false;
   // if help/version options were specified, print help/version and exit
   if (parse_result.map.count("help")) {
     std::cout << parse_result.description << std::endl;
-    std::exit(EXIT_SUCCESS);
+    return true;
   }
   if (parse_result.map.count("version")) {
     std::cout << version_description() << std::endl;
-    std::exit(EXIT_SUCCESS);
+    return true;
   }
   // extract variables from parse_result variable map
-  return {
+  opts = {
     parse_result.map["one-line"].as<bool>(),
     parse_result.map["back"].as<unsigned int>(),
     parse_result.map["verbose"].as<bool>(),
@@ -111,27 +110,27 @@ cliopts extract_args(int argc, char* argv[])
 #else
   cliopt_map opt_map;
   if (!parse_options(opt_map, argc, argv))
-    std::exit(EXIT_FAILURE);
+    return false;
   // if help/version options were specified, print help/version and exit
   if (opt_map.find("help") != opt_map.end()) {
-    // TODO: make a proper program description later
     std::cout << program_description() << std::endl;
-    std::exit(EXIT_SUCCESS);
+    return true;
   }
   if (opt_map.find("version") != opt_map.end()) {
     std::cout << version_description() << std::endl;
-    std::exit(EXIT_SUCCESS);
+    return true;
   }
   // extract variables from options map
-  const auto one_line = (opt_map.find("one_line") != opt_map.end());
-  const auto [previous, previous_valid] = extract_previous(opt_map);
+  bool one_line = (opt_map.find("one_line") != opt_map.end());
+  auto [previous, previous_valid] = extract_previous(opt_map);
   if (!previous_valid)
-    std::exit(EXIT_FAILURE);
-  const auto verbose = (opt_map.find("verbose") != opt_map.end());
-  const auto insecure = (opt_map.find("insecure") != opt_map.end());
+    return false;
+  bool verbose = (opt_map.find("verbose") != opt_map.end());
+  bool insecure = (opt_map.find("insecure") != opt_map.end());
   // done, populate struct
-  return {one_line, previous, verbose, insecure};
+  opts = {one_line, previous, verbose, insecure};
 #endif  // !PDXKA_USE_BOOST_PROGRAM_OPTIONS
+  return true;
 }
 
 }  // namespace
@@ -143,7 +142,9 @@ int program_main(
 {
   // parse and extract command-line arguments, printing error messages or
   // information output and exiting appropriately as necessary
-  auto opts = extract_args(argc, argv);
+  cliopts opts;
+  if (!extract_args(opts, argc, argv))
+    return EXIT_FAILURE;
   // get XKCD RSS as a string using cURL. this may be an actual network call,
   // e.g. using get_rss, or some mocked output (for testing)
   auto res = rss_factory(opts);

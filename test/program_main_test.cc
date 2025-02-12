@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #include <boost/test/data/test_case.hpp>
@@ -57,6 +58,32 @@ BOOST_AUTO_TEST_SUITE(xkcd_alt)
 namespace {
 
 /**
+ * Traits helper that provides the expected exit code of the mocking test.
+ *
+ * If the provided type has an static `int` member called `exit_code` then its
+ * value is used, otherwise the default `EXIT_SUCCESS` is used.
+ *
+ * @tparam T Input type
+ */
+template <typename T, typename = void>
+struct exit_code_traits {
+  static constexpr int value = EXIT_SUCCESS;
+};
+
+/**
+ * Specialization for types that have the `exit_code` member.
+ *
+ * @tparam T Input type
+ */
+template <typename T>
+struct exit_code_traits<
+  T,
+  std::enable_if_t<std::is_same_v<int, std::remove_cv_t<decltype(T::exit_code)>>>
+> {
+    static constexpr int value = T::exit_code;
+};
+
+/**
  * Callable object that returns the first `mock_program_main` input.
  *
  * This provides no arguments except the program name.
@@ -88,7 +115,7 @@ struct argv_type_2 {
  * This requests an XKCD strip alt text 3 days previous from today on one line.
  */
 struct argv_type_3 {
-  auto operator()() const
+  auto operator()() const noexcept
   {
     return pt::make_argument_vector(PDXKA_PROGNAME, "-o", "-b3");
   }
@@ -101,7 +128,7 @@ struct argv_type_3 {
  * specifying this using `-b` with a separate value as an argument.
  */
 struct argv_type_4 {
-  auto operator()() const
+  auto operator()() const noexcept
   {
     return pt::make_argument_vector(PDXKA_PROGNAME, "-b", "1");
   }
@@ -113,7 +140,7 @@ struct argv_type_4 {
  * This makes the 1 day previous alt text request using `--back`.
  */
 struct argv_type_5 {
-  auto operator()() const
+  auto operator()() const noexcept
   {
     return pt::make_argument_vector(PDXKA_PROGNAME, "--back");
   }
@@ -125,7 +152,7 @@ struct argv_type_5 {
  * This makes the 2 day previous alt text request using `--back`.
  */
 struct argv_type_6 {
-  auto operator()() const
+  auto operator()() const noexcept
   {
     return pt::make_argument_vector(PDXKA_PROGNAME, "--back", "2");
   }
@@ -137,10 +164,58 @@ struct argv_type_6 {
  * This makes the 3 day previous alt text request using `--back=3`.
  */
 struct argv_type_7 {
-  auto operator()() const
+  auto operator()() const noexcept
   {
     return pt::make_argument_vector(PDXKA_PROGNAME, "--back=3");
   }
+};
+
+/**
+ * Callable object that errors because we backed up too much.
+ */
+struct argv_type_8 {
+  auto operator()() const noexcept
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "-b1000");
+  }
+  static constexpr int exit_code = EXIT_FAILURE;
+};
+
+/**
+ * Callable object that errors because we backed up too much (long option).
+ */
+struct argv_type_9 {
+  auto operator()() const noexcept
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "--back", "8888");
+  }
+  static constexpr int exit_code = EXIT_FAILURE;
+};
+
+/**
+ * Callable object that errors because we provided a negative value to -b.
+ *
+ * In this case it is interpreted as an unknown command line option.
+ */
+struct argv_type_10 {
+  auto operator()() const noexcept
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "-b", "-1900");
+  }
+  static constexpr int exit_code = EXIT_FAILURE;
+};
+
+/**
+ * Callable object that errors because we provided a negative value to -b.
+ *
+ * In this case it is interpreted as an invalid negative value.
+ */
+struct argv_type_11 {
+  auto operator()() const noexcept
+  {
+    return pt::make_argument_vector(PDXKA_PROGNAME, "-b-9888");
+  }
+  static constexpr int exit_code = EXIT_FAILURE;
 };
 
 /**
@@ -153,7 +228,11 @@ using argv_type_tuple = std::tuple<
   argv_type_4,
   argv_type_5,
   argv_type_6,
-  argv_type_7
+  argv_type_7,
+  argv_type_8,
+  argv_type_9,
+  argv_type_10,
+  argv_type_11
 >;
 
 }  // namespace
@@ -172,9 +251,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(mock_program_main, T, argv_type_tuple)
     pt::stream_diverter err_diverter{std::cerr, err_out};
     ret = pt::program_main(T{}(), mock_rss_get);
   }
-  BOOST_TEST_REQUIRE(
-    ret == EXIT_SUCCESS,
-    "exit with nonzero status " << ret << ". error: " << err_out.str()
+  // error code must match
+  constexpr auto target_ret = exit_code_traits<T>::value;
+  BOOST_TEST(
+    ret == target_ret,
+    "exit code " << ret << " != target exit code " << target_ret <<
+      ". error: " << err_out.str()
   );
 }
 
