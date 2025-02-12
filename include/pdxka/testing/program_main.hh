@@ -48,8 +48,9 @@ public:
    * Copies the contents of the null-terminated char arrays or string literals,
    * including the null terminators, to the tuple member of the object.
    *
-   * @todo This does not compile with Visual Studio 2022 as CTAD fails and for
+   * @note This does not compile with Visual Studio 2022 as CTAD fails and for
    *  some reason we get a C3520 complaining about Ns not being expanded.
+   *  Adding a deduction guide does not improve the situation either.
    *
    * @param args... Parameter pack of null-terminated character arrays
    */
