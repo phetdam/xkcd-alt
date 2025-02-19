@@ -120,6 +120,67 @@ private:
 };
 
 /**
+ * Exception type associated with cURL errors.
+ *
+ * This will contain the cURL error code and a pointer to the error text.
+ */
+class curl_error : public std::runtime_error {
+public:
+  /**
+   * Ctor.
+   *
+   * Construct with the cURL status and user-defined message. The call site is
+   * specified as `"(unknown)"` since it is not provided.
+   *
+   * @param status cURL error status
+   * @param message User-defined error message
+   */
+  curl_error(CURLcode status, const std::string& message)
+    : curl_error("(unknown)", status, message)
+  {}
+
+  /**
+   * Ctor.
+   *
+   * Construct with a user-specified call site, cURL status, and message.
+   *
+   * @param site Call site, e.g. `PDXKA_PRETTY_FUNCTION_NAME`
+   * @param status cURL error status
+   * @param message User-defined error message
+   */
+  curl_error(const char* site, CURLcode status, const std::string& message)
+    : std::runtime_error{
+        std::string{site} + ": " + message + ": " + curl_easy_strerror(status)
+      },
+      status_{status},
+      error_text_{curl_easy_strerror(status)}
+  {}
+
+  /**
+   * Return the cURL status code.
+   */
+  auto status() const noexcept { return status_; }
+
+  /**
+   * Return the cURL status error text.
+   */
+  auto error_text() const noexcept { return error_text_; }
+
+private:
+  CURLcode status_;
+  const char* error_text_;
+};
+
+/**
+ * Helper macro to throw a `curl_error` with the function signature.
+ *
+ * @param status cURL error status
+ * @param message User-defined error message
+ */
+#define PDXKA_CURL_ERROR_THROW(status, message) \
+  throw pdxka::curl_error{PDXKA_PRETTY_FUNCTION_NAME, status, message}
+
+/**
  * Perform global libcurl initialization in a thread-safe manner.
  *
  * This will call `curl_global_init` and under C++11 is thread-safe. After the
@@ -144,11 +205,7 @@ inline void init_curl(long flags = CURL_GLOBAL_DEFAULT)
     {
       CURLcode status;
       PDXKA_CURL_NOT_OK(status = curl_global_init(flags))
-        throw std::runtime_error{
-          PDXKA_PRETTY_FUNCTION_NAME +
-          std::string{": libcurl initialization failed: "} +
-          curl_easy_strerror(status)
-        };
+        PDXKA_CURL_ERROR_THROW(status, "libcurl initialization failed");
     }
 
     /**
@@ -189,11 +246,11 @@ PDXKA_MSVC_WARNING_DISABLE(4706)
     // perform thread-safe libcurl global init (no-op if already initialized)
     init_curl();
     // get new easy handle. if nullptr, error
+    // note: although there is no corresponding CURLcode and cURL does not have
+    // a per-thread error indicator, CURLE_FAILED_INIT is close enough to this
     if (!(handle_ = curl_easy_init()))
 PDXKA_MSVC_WARNING_POP()
-      throw std::runtime_error{
-        PDXKA_PRETTY_FUNCTION_NAME + std::string{": curl_easy_init errored"}
-      };
+      PDXKA_CURL_ERROR_THROW(CURLE_FAILED_INIT, "curl_easy_init errored");
   }
 
   /**
@@ -248,6 +305,16 @@ PDXKA_MSVC_WARNING_POP()
   {
     return handle_;
   }
+
+  // TODO: add template set() function with following semantics:
+  //
+  // template <CURLoption opt>
+  // auto& set(curl_option_value_type<opt> value) noexcept(curl_option_noexcept<opt>)
+  // {
+  //   ...
+  //   return *this;
+  // }
+  //
 
 private:
   CURL* handle_;
@@ -323,6 +390,7 @@ template <typename... Ts>
 curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
 {
   // cURL session handle and global error status
+  // TODO: status should be CURLE_OK and then set on exception
   curl_handle handle;
   CURLcode status;
   // reason the cURL request has errored out + stream to hold response body
