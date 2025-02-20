@@ -470,8 +470,7 @@ curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
   std::stringstream stream;
   // handle error buffer. null-terminated so it is always valid
   // TODO: should a handle maintain its own error buffer?
-  char errbuf[CURL_ERROR_SIZE];
-  errbuf[0] = '\0';
+  char errbuf[CURL_ERROR_SIZE] = "";
   // handle with error buffer, callback writer + write target (should not fail)
   auto handle = curl_handle{}
     .option<CURLOPT_ERRORBUFFER>(errbuf)
