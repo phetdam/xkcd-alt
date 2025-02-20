@@ -20,6 +20,7 @@
 #include <curl/curl.h>
 
 #include "pdxka/common.h"
+#include "pdxka/curl_traits.hh"
 #include "pdxka/warnings.h"
 
 namespace pdxka {
@@ -306,15 +307,66 @@ PDXKA_MSVC_WARNING_POP()
     return handle_;
   }
 
-  // TODO: add template set() function with following semantics:
-  //
-  // template <CURLoption opt>
-  // auto& set(curl_option_value_type<opt> value) noexcept(curl_option_noexcept<opt>)
-  // {
-  //   ...
-  //   return *this;
-  // }
-  //
+  /**
+   * Set the cURL option on the handle with the given value.
+   *
+   * Throwing occurs only if setting the option can fail and if failure occurs.
+   *
+   * @tparam O cURL option value
+   *
+   * @param value cURL option argument value
+   * @returns `*this` to allow method chaining
+   */
+  template <CURLoption O>
+  auto& option(curl_option_value_type<O> value) & noexcept(curl_option_always_ok<O>)
+  {
+    set<O>(std::move(value));
+    return *this;
+  }
+
+  /**
+   * Set the cURL option on the handle with the given value.
+   *
+   * Throwing occurs only if setting the option can fail and if failure occurs.
+   *
+   * @tparam O cURL option value
+   *
+   * @param value cURL option argument value
+   * @returns `std::move(*this)` to allow method chaining
+   */
+  template <CURLoption O>
+  auto option(curl_option_value_type<O> value) && noexcept(curl_option_always_ok<O>)
+  {
+    set<O>(std::move(value));
+    // by performing a move instead of returning *this we provide a fluent API
+    // that allows creation via curl_handle{}.option<O>(value)
+    return std::move(*this);
+  }
+
+  /**
+   * Perform a blocking network transfer using the easy handle.
+   *
+   * This should not be called concurrently on the same handle.
+   *
+   * @returns `*this` to allow method chaining
+   */
+  auto& operator()() &
+  {
+    curl_easy_perform(handle_);
+    return *this;
+  }
+
+  /**
+   * Perform a blocking network transfer using the easy handle.
+   *
+   * This should not be called concurrently on the same handle.
+   *
+   * @returns `std::move(*this)` to allow method chaining
+   */
+  auto operator()() &&
+  {
+    return std::move((*this)());
+  }
 
 private:
   CURL* handle_;
@@ -337,6 +389,30 @@ private:
   {
     // if handle_ is nullptr nothing is done
     curl_easy_cleanup(handle_);
+  }
+
+  /**
+   * Set the cURL option on the handle with the given value.
+   *
+   * Throwing occurs only if setting the option can fail and if failure occurs.
+   *
+   * @tparam O cURL option value
+   *
+   * @param value cURL option argument value
+   */
+  template <CURLoption O>
+  void set(curl_option_value_type<O> value) noexcept(curl_option_always_ok<O>)
+  {
+// MSVC warns that extern "C" function may throw since cURL does not provide a
+// noexcept macro for C++ to mark its functions as non-throwing
+PDXKA_MSVC_WARNING_PUSH()
+PDXKA_MSVC_WARNING_DISABLE(5039)
+    auto status = curl_easy_setopt(handle_, O, value);
+PDXKA_MSVC_WARNING_POP()
+    // exception throw branch only available if option can fail
+    if constexpr (!curl_option_always_ok<O>)
+      PDXKA_CURL_NOT_OK(status)
+        PDXKA_CURL_ERROR_THROW(status, "curl_easy_setopt failed");
   }
 };
 
@@ -389,41 +465,42 @@ inline std::size_t curl_writer(
 template <typename... Ts>
 curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
 {
-  // cURL session handle and global error status
-  // TODO: status should be CURLE_OK and then set on exception
-  curl_handle handle;
-  CURLcode status;
-  // reason the cURL request has errored out + stream to hold response body
-  std::string reason;
+  // cURL status + stream to hold response body
+  auto status = CURLE_OK;
   std::stringstream stream;
-  // set cURL error buffer, callback writer function, and the write target
+  // handle error buffer. null-terminated so it is always valid
+  // TODO: should a handle maintain its own error buffer?
   char errbuf[CURL_ERROR_SIZE];
-  curl_easy_setopt(handle, CURLOPT_ERRORBUFFER, &errbuf);
-  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, &detail::curl_writer);
-  curl_easy_setopt(handle, CURLOPT_WRITEDATA, &stream);
-  // set URL to make GET request to (errors if no heap space left)
-  status = curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, done);
-  // set cURL options (only if exit status is good) using fold. we break early
-  // if the status ends up being bad at any point
-  (
-    [&status, &handle, &options]
-    {
-      PDXKA_CURL_OK(status) {
-        status = curl_easy_setopt(handle, options.name(), options.value());
-        return true;
-      }
-      // not ok, break early
-      return false;
-    }() && ...
-  );
-  // check last error and clean up if necessary
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, done);
-  // perform GET request
-  status = curl_easy_perform(handle);
-  PDXKA_CURL_ERR_HANDLER(status, reason, errbuf, done);
-done:
-  return {status, reason, request_type::get, stream.str()};
+  errbuf[0] = '\0';
+  // handle with error buffer, callback writer + write target (should not fail)
+  auto handle = curl_handle{}
+    .option<CURLOPT_ERRORBUFFER>(errbuf)
+    .option<CURLOPT_WRITEFUNCTION>(&detail::curl_writer)
+    .option<CURLOPT_WRITEDATA>(&stream);
+  // perform possibly-failing operations
+  try {
+    // set URL to make GET request to (errors if no heap space left)
+    handle.option<CURLOPT_URL>(url.c_str());
+    // set other options that may fail
+    // FIXME: curl_option needs to be parametrized by enum, *not* C++ type
+    // note: purposefully don't set status; we can retrieve it from exception
+    (
+      [&handle, &options]
+      {
+        auto res = curl_easy_setopt(handle, options.name(), options.value());
+        PDXKA_CURL_NOT_OK(res)
+          PDXKA_CURL_ERROR_THROW(res, "curl_easy_setopt failed");
+      }(), ...
+    );
+    // perform GET request
+    handle();
+  }
+  // catch cURL error for status update
+  catch (const curl_error& err) {
+    status = err.status();
+  }
+  // return result
+  return {status, errbuf, request_type::get, stream.str()};
 }
 
 }  // namespace pdkxa
