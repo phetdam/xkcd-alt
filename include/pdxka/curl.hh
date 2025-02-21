@@ -378,22 +378,24 @@ PDXKA_MSVC_WARNING_POP()
   }
 
   /**
-   * Perform a blocking network transfer using the easy handle.
+   * Perform a blocking network transfer with the easy handle.
    *
-   * This should not be called concurrently on the same handle.
+   * This throws on error and should not be called concurrently.
    *
    * @returns `*this` to allow method chaining
    */
   auto& operator()() &
   {
-    curl_easy_perform(handle_);
+    auto status = curl_easy_perform(handle_);
+    PDXKA_CURL_NOT_OK(status)
+      PDXKA_CURL_ERROR_THROW(status, "curl_easy_perform failed");
     return *this;
   }
 
   /**
-   * Perform a blocking network transfer using the easy handle.
+   * Perform a blocking network transfer with the easy handle.
    *
-   * This should not be called concurrently on the same handle.
+   * This throws on error and should not be called concurrently.
    *
    * @returns `std::move(*this)` to allow method chaining
    */
