@@ -82,42 +82,42 @@ struct curl_result {
 /**
  * Template class holding cURL options.
  *
- * @tparam T cURL option value type
+ * @tparam O cURL option value
  */
-template <typename T>
+template <CURLoption O>
 class curl_option {
 public:
-  using value_type = T;
+  using value_type = curl_option_value_type<O>;
 
   /**
    * Constructor.
    *
-   * @param name `CURLoption` cURL option enum value
-   * @param value `T` cURL option value to set
+   * @param value cURL option value to set
    */
-  curl_option(CURLoption name, T value) : name_(name), value_(value) {}
+  constexpr curl_option(value_type value) noexcept(noexcept(std::move(value)))
+    : value_{std::move(value)}
+  {}
 
   /**
    * Return cURL option enum value.
    */
-  auto name() const noexcept
+  static constexpr auto name() noexcept
   {
-    return name_;
+    return O;
   }
 
   /**
    * Return the option value.
    *
-   * This is by const ref if the type is larger than a pointer else by value.
+   * Since the type is typically small we simply return by value.
    */
-  std::conditional_t<sizeof(T) <= sizeof(void*), T, const T&> value() const noexcept
+  constexpr auto value() const noexcept
   {
     return value_;
   }
 
 private:
-  CURLoption name_;
-  T value_;
+  value_type value_;
 };
 
 /**
@@ -335,11 +335,45 @@ PDXKA_MSVC_WARNING_POP()
    * @returns `std::move(*this)` to allow method chaining
    */
   template <CURLoption O>
-  auto option(curl_option_value_type<O> value) && noexcept(curl_option_always_ok<O>)
+  auto&& option(curl_option_value_type<O> value) && noexcept(curl_option_always_ok<O>)
   {
     set<O>(std::move(value));
     // by performing a move instead of returning *this we provide a fluent API
     // that allows creation via curl_handle{}.option<O>(value)
+    return std::move(*this);
+  }
+
+  /**
+   * Set the cURL option on the handle.
+   *
+   * Throwing occurs only if setting the option can fail and if failure occurs.
+   *
+   * @tparam O cURL option value
+   *
+   * @param opt cURL option
+   * @returns `*this` to allow method chaining
+   */
+  template <CURLoption O>
+  auto& option(const curl_option<O>& opt) & noexcept(curl_option_always_ok<O>)
+  {
+    set<O>(opt.value());
+    return *this;
+  }
+
+  /**
+   * Set the cURL option on the handle.
+   *
+   * Throwing occurs only if setting the option can fail and if failure occurs.
+   *
+   * @tparam O cURL option value
+   *
+   * @param opt cURL option
+   * @returns `std::move(*this)` to allow method chaining
+   */
+  template <CURLoption O>
+  auto&& option(const curl_option<O>& opt) && noexcept(curl_option_always_ok<O>)
+  {
+    set<O>(opt.value());
     return std::move(*this);
   }
 
@@ -363,7 +397,7 @@ PDXKA_MSVC_WARNING_POP()
    *
    * @returns `std::move(*this)` to allow method chaining
    */
-  auto operator()() &&
+  auto&& operator()() &&
   {
     return std::move((*this)());
   }
@@ -459,11 +493,13 @@ inline std::size_t curl_writer(
 /**
  * Make a HTTP[S] `GET` request to a URL using libcurl.
  *
+ * @tparam Os... cURL option values
+ *
  * @param url URL to make HTTP[S] `GET` request to
- * @param options `curl_option<T>` additional libcurl options to set
+ * @param options Other libcurl options to set
  */
-template <typename... Ts>
-curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
+template <CURLoption... Os>
+curl_result curl_get(const std::string& url, const curl_option<Os>&... options)
 {
   // cURL status + stream to hold response body
   auto status = CURLE_OK;
@@ -481,16 +517,7 @@ curl_result curl_get(const std::string& url, const curl_option<Ts>&... options)
     // set URL to make GET request to (errors if no heap space left)
     handle.option<CURLOPT_URL>(url.c_str());
     // set other options that may fail
-    // FIXME: curl_option needs to be parametrized by enum, *not* C++ type
-    // note: purposefully don't set status; we can retrieve it from exception
-    (
-      [&handle, &options]
-      {
-        auto res = curl_easy_setopt(handle, options.name(), options.value());
-        PDXKA_CURL_NOT_OK(res)
-          PDXKA_CURL_ERROR_THROW(res, "curl_easy_setopt failed");
-      }(), ...
-    );
+    (handle.option(options), ...);
     // perform GET request
     handle();
   }

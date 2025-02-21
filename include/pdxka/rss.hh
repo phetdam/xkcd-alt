@@ -39,8 +39,8 @@ inline const auto& rss_url()
  *
  * @param options `curl_option<T>` additional cURL options to set
  */
-template <typename... Ts>
-inline curl_result get_rss(curl_option<Ts>... options)
+template <CURLoption... Os>
+inline curl_result get_rss(const curl_option<Os>&... options)
 {
   return curl_get(rss_url(), options...);
 }

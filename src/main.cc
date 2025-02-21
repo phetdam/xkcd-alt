@@ -21,10 +21,10 @@ namespace {
  */
 auto get_xkcd_rss(const pdxka::cliopts& opts)
 {
-  return pdxka::get_rss(
-    pdxka::curl_option<long>{CURLOPT_VERBOSE, opts.verbose},
-    pdxka::curl_option<long>{CURLOPT_SSL_VERIFYPEER, !opts.insecure}
-  );
+  using pdxka::curl_option;
+  curl_option<CURLOPT_VERBOSE> verbose{opts.verbose};
+  curl_option<CURLOPT_SSL_VERIFYPEER> insecure{opts.insecure};
+  return pdxka::get_rss(verbose, insecure);
 }
 
 }  // namespace
