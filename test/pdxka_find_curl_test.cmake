@@ -157,7 +157,7 @@ macro(parse_args)
 endmacro()
 
 # parse arguments and set relevant variables
-parse_args(${CMAKE})
+parse_args()
 # print call signature
 list(JOIN arg_list " " arg_print_list)
 message(STATUS "Calling pdxka_find_curl(${arg_print_list})")
