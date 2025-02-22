@@ -72,12 +72,12 @@ macro(pdxka_find_curl)
     unset(_multi_args)
     # build list of root hint locations. CURL_ROOT is preferred over CURL_DIR
     set(_curl_root_hints "")
-    # check cache first
-    if(DEFINED CACHE{CURL_ROOT})
-        set(_curl_root_hints ${_curl_root_hints} $CACHE{CURL_ROOT})
+    # check variables first (need not be cache variables)
+    if(DEFINED CURL_ROOT)
+        set(_curl_root_hints ${_curl_root_hints} ${CURL_ROOT})
     endif()
-    if(DEFINED CACHE{CURL_DIR})
-        set(_curl_root_hints ${_curl_root_hints} $CACHE{CURL_DIR})
+    if(DEFINED CURL_DIR)
+        set(_curl_root_hints ${_curl_root_hints} ${CURL_DIR})
     endif()
     # then check env
     if(DEFINED ENV{CURL_ROOT})
