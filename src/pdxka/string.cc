@@ -1,7 +1,7 @@
 /**
  * @file string.cc
  * @author Derek Huang
- * @brief String formatting
+ * @brief C++ string formatting helpers
  * @copyright MIT License
  */
 
@@ -51,7 +51,9 @@ std::string line_wrap(
         n_written++;
         stream.put('\n');
         // chunk size; we write in chunks until everything is written
-        std::size_t chunk_size;
+        // note: n_written < i is always true but compiler will complain about
+        // chunk_size possibly being used without initialization, so we init
+        std::size_t chunk_size = 0;
         // write until end of length, insert newline, continue, and repeat this
         // until all the characters are written. then set n_used
         while (n_written < i) {

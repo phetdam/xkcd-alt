@@ -1,7 +1,7 @@
 /**
  * @file string.hh
  * @author Derek Huang
- * @brief String formatting
+ * @brief C++ string formatting helpers
  * @copyright MIT License
  */
 
