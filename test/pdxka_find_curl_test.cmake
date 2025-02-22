@@ -18,7 +18,16 @@ string(
     "    -m /path/to/pdxka_find_curl.cmake [-v VERSION] [-r] [-c COMPONENTS]\n\n"
 )
 string(APPEND usage "Perform tests on pdxka_find_curl.\n\n")
+string(
+    APPEND usage
+    "If running standalone you may need to define CURL_ROOT as either an\n"
+)
+string(
+    APPEND usage
+    "environment variable or as a CMake variable with -DCURL_ROOT=<path>.\n\n"
+)
 string(APPEND usage "Options:\n")
+string(APPEND usage "  -h, --help        Print this usage text\n")
 string(APPEND usage "  -m MODULE, --module MODULE\n")
 string(APPEND usage "                    Required path to pdxka_find_curl.cmake\n\n")
 string(APPEND usage "  -v VERSION, --version VERSION\n")
@@ -63,8 +72,16 @@ macro(parse_args)
             continue()
         endif()
         # build argument list
+        # -h, --help
+        if(CMAKE_ARGV${_i} STREQUAL "-h" OR CMAKE_ARGV${_i} STREQUAL "--help")
+            message(STATUS "${usage}")
+            # terminates CMake script mode
+            return()
         # -m, --module
-        if(CMAKE_ARGV${_i} STREQUAL "-m" OR CMAKE_ARGV${_i} STREQUAL "--module")
+        elseif(
+            CMAKE_ARGV${_i} STREQUAL "-m" OR
+            CMAKE_ARGV${_i} STREQUAL "--module"
+        )
             # error if already specified
             if(DEFINED module_included)
                 message(FATAL_ERROR "-m, --module already specified")

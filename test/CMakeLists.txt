@@ -51,17 +51,24 @@ endif()
 # add Boost tests individually
 pdxka_boost_discover_tests(pdxka_test)
 
+# since CURL::libcurl is defined extract the install root
+get_target_property(_curl_root CURL::libcurl IMPORTED_LOCATION)
+# note: assumes we only need to go up one directory level
+cmake_path(GET _curl_root PARENT_PATH _curl_root)
+cmake_path(GET _curl_root PARENT_PATH _curl_root)
+
+# helpers for pdxka_find_curl_test.cmake and the pdxka_find_curl.cmake module
+set(_find_curl_test ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_find_curl_test.cmake)
+set(_find_curl_module ${PDXKA_SOURCE_DIR}/cmake/pdxka_find_curl.cmake)
+
 # tests for pdxka_find_curl
 # 1. optional search, version too high
 add_test(
     NAME pdxka_find_curl_test_1
     COMMAND
-        ${CMAKE_COMMAND} -P
-            ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_find_curl_test.cmake
-            --
-            # TODO: should have a helper variable for this path
-            -m ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/pdxka_find_curl.cmake
-            -v 1900.90.0
+        ${CMAKE_COMMAND}
+            -DCURL_ROOT=${_curl_root} -P ${_find_curl_test} --
+            -m ${_find_curl_module} -v 1900.90.0
 )
 set_property(
     TEST pdxka_find_curl_test_1 PROPERTY
@@ -71,12 +78,9 @@ set_property(
 add_test(
     NAME pdxka_find_curl_test_2
     COMMAND
-        ${CMAKE_COMMAND} -P
-        ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_find_curl_test.cmake
-        --
-        -m ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/pdxka_find_curl.cmake
-        -r
-        -v 900.0.1
+        ${CMAKE_COMMAND}
+            -DCURL_ROOT=${_curl_root} -P ${_find_curl_test} --
+            -m ${_find_curl_module} -r -v 900.0.1
 )
 set_property(
     TEST pdxka_find_curl_test_2 PROPERTY
@@ -86,18 +90,22 @@ set_property(
 add_test(
     NAME pdxka_find_curl_test_3
     COMMAND
-        ${CMAKE_COMMAND} -P
-        ${CMAKE_CURRENT_SOURCE_DIR}/pdxka_find_curl_test.cmake
-        --
-        -m ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/pdxka_find_curl.cmake
-        -v  ${PDXKA_CURL_VERSION}
-        # note: HTTPS is required anyways for this project
-        -c "HTTPS;nonexistent_libcurl_component"
+        ${CMAKE_COMMAND}
+            -DCURL_ROOT=${_curl_root} -P ${_find_curl_test} --
+            -m ${_find_curl_module}
+            -v ${PDXKA_CURL_VERSION}
+            # note: HTTPS is required anyways for this project
+            -c "HTTPS;nonexistent_libcurl_component"
 )
 set_property(
     TEST pdxka_find_curl_test_3 PROPERTY
     PASS_REGULAR_EXPRESSION "Could NOT find requested libcurl component"
 )
+
+# unset unused
+unset(_curl_root)
+unset(_find_curl_test)
+unset(_find_curl_module)
 
 # path to test install directory
 set(_test_install_dir ${PDXKA_BINARY_DIR}/test_install)
