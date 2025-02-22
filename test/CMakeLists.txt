@@ -34,15 +34,22 @@ if(WIN32)
     # disable C5204 emitted from pplwin.h (probably because this header is used
     # by Boost.ProgramOptions; not entirely sure however)
     target_compile_options(pdxka_test PRIVATE /wd5204)
-    # note: although we fixed the issue with the testing/program_main.hh
+    #
+    # note:
+    #
+    # although we fixed the issue with the testing/program_main.hh
     # argument_vector not having the proper copy semantics (see copy ctor
     # comments for details), without /permissive- Visual Studio 2022 calls the
     # copy ctor for some reason when passing a prvalue argument_vector to a
     # function template that is taking an argument_vector rvalue reference.
     # this is probably related to MSVC's default behavior when /Zc:rvalueCast
     # is not set but in this context there is no cast operation being done.
-    # note: some flakiness of pdkxa_test Boost.PropertyTree errors when we
-    # change this? seems like part of the build is not getting triggered
+    #
+    # note:
+    #
+    # some flakiness of pdkxa_test Boost.PropertyTree errors when we change
+    # this? seems like part of the build is not getting triggered
+    #
     # target_compile_options(pdxka_test PRIVATE /permissive-)
     # copy dependent DLLs to output directory
     pdxka_copy_runtime_dlls(pdxka_test)
