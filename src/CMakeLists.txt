@@ -53,24 +53,44 @@ set_tests_properties(
     ${_prog}_version PROPERTIES
     FAIL_REGULAR_EXPRESSION "-- https://xkcd.com"
 )
-# TODO: make cross-platform
-# FIXME: if a fixture is skipped, tests are still run (and will fail)
-#[[==
-if(WIN32)
-    # end-to-end tests that use the network
-    add_test(NAME ${_prog} COMMAND ${_prog})
-    add_test(NAME ${_prog}_b COMMAND ${_prog} -b)
-    add_test(NAME ${_prog}_b2_v COMMAND ${_prog} -b2 -v)
-    add_test(NAME ${_prog}_back_3 COMMAND ${_prog} --back=3)
-    # only run the network tests if Internet check succeeds
-    set_tests_properties(
-        ${_prog}
-        ${_prog}_b
-        ${_prog}_b2_v
-        ${_prog}_back_3 PROPERTIES
-        FIXTURES_REQUIRED have_inet
+
+##
+# Adds a CTest test that runs a live xkcd-alt invocation.
+#
+# This is wrapped in a CMake script that will run pdxka_inet_test to determine
+# if there is Internet or not; if no Internet, the test is skipped. We have to
+# do this to work around the fact that if a fixture test is skipped, the tests
+# that depend on it will still be fired off.
+#
+# Arguments:
+#   NAME name       Test name
+#   ARGS ...        Arguments to pass to xkcd-alt
+#
+function(add_live_xkcd_test)
+    # parse arguments
+    cmake_parse_arguments(_ARG "" "NAME" "ARGS" ${ARGN})
+    # regsiter test
+    add_test(
+        NAME ${_ARG_NAME}
+        COMMAND ${CMAKE_COMMAND}
+                -DPDXKA_INET_TEST=$<TARGET_FILE:pdxka_inet_test>
+                -DXKCD_ALT_PROGRAM=$<TARGET_FILE:${_prog}>
+                -P ${PDXKA_SOURCE_DIR}/test/pdxka_live_test.cmake -- ${_ARG_ARGS}
     )
+    # ensure that if there is no Internet, marked as skip
+    set_tests_properties(
+        ${_ARG_NAME} PROPERTIES
+        SKIP_REGULAR_EXPRESSION "SKIPPING"
+    )
+endfunction()
+
+# add live tests (connects to xkcd.com)
+# TODO: pdxka_inet_test has to be cross-platform before we can remove if(WIN32)
+if(WIN32)
+    add_live_xkcd_test(NAME ${_prog})
+    add_live_xkcd_test(NAME ${_prog}_b ARGS -b)
+    add_live_xkcd_test(NAME ${_prog}_b2_v ARGS -b2 -v)
+    add_live_xkcd_test(NAME ${_prog}_back_3 ARGS --back=3)
 endif()
-#==]]
 
 unset(_prog)

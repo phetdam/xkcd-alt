@@ -52,21 +52,13 @@ endif()
 pdxka_boost_discover_tests(pdxka_test)
 
 # pdxka_inet_test: check if we are connected to the Internet
+# this is used by pdxka_live_test.cmake to skip live xkcd-alt tests if there is
+# no Internet connection. we cannot use test fixtures because if a fixture test
+# is skipped, the dependent tests will still get fired off.
 # TODO: make cross-platform
 if(WIN32)
     add_executable(pdxka_inet_test pdxka_inet_test.cc)
     target_link_libraries(pdxka_inet_test PRIVATE ole32)
-    # used as a test fixture before we run any tests that need Internet access.
-    # this allows us to skip the tests when appropriate while also catching any
-    # other network errors without the retry/timeout delay
-    add_test(NAME pdxka_inet_test COMMAND pdxka_inet_test)
-    set_tests_properties(
-        pdxka_inet_test PROPERTIES
-        FIXTURES_SETUP have_inet
-        # always returns 0 unless some other error occurred so use pass regex
-        PASS_REGULAR_EXPRESSION "Internet: Yes"
-        SKIP_REGULAR_EXPRESSION "Internet: No"
-    )
 endif()
 
 # since CURL::libcurl is defined extract the install root
