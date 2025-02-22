@@ -53,5 +53,24 @@ set_tests_properties(
     ${_prog}_version PROPERTIES
     FAIL_REGULAR_EXPRESSION "-- https://xkcd.com"
 )
+# TODO: make cross-platform
+# FIXME: if a fixture is skipped, tests are still run (and will fail)
+#[[==
+if(WIN32)
+    # end-to-end tests that use the network
+    add_test(NAME ${_prog} COMMAND ${_prog})
+    add_test(NAME ${_prog}_b COMMAND ${_prog} -b)
+    add_test(NAME ${_prog}_b2_v COMMAND ${_prog} -b2 -v)
+    add_test(NAME ${_prog}_back_3 COMMAND ${_prog} --back=3)
+    # only run the network tests if Internet check succeeds
+    set_tests_properties(
+        ${_prog}
+        ${_prog}_b
+        ${_prog}_b2_v
+        ${_prog}_back_3 PROPERTIES
+        FIXTURES_REQUIRED have_inet
+    )
+endif()
+#==]]
 
 unset(_prog)

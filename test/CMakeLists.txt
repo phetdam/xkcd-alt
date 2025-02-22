@@ -51,6 +51,24 @@ endif()
 # add Boost tests individually
 pdxka_boost_discover_tests(pdxka_test)
 
+# pdxka_inet_test: check if we are connected to the Internet
+# TODO: make cross-platform
+if(WIN32)
+    add_executable(pdxka_inet_test pdxka_inet_test.cc)
+    target_link_libraries(pdxka_inet_test PRIVATE ole32)
+    # used as a test fixture before we run any tests that need Internet access.
+    # this allows us to skip the tests when appropriate while also catching any
+    # other network errors without the retry/timeout delay
+    add_test(NAME pdxka_inet_test COMMAND pdxka_inet_test)
+    set_tests_properties(
+        pdxka_inet_test PROPERTIES
+        FIXTURES_SETUP have_inet
+        # always returns 0 unless some other error occurred so use pass regex
+        PASS_REGULAR_EXPRESSION "Internet: Yes"
+        SKIP_REGULAR_EXPRESSION "Internet: No"
+    )
+endif()
+
 # since CURL::libcurl is defined extract the install root
 get_target_property(_curl_root CURL::libcurl IMPORTED_LOCATION)
 # note: assumes we only need to go up one directory level
