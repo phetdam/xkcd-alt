@@ -54,26 +54,25 @@ int main()
     return EXIT_FAILURE;
   }
   // check if we have connection to Internet
-  VARIANT_BOOL have_inet;
-  // use lambda to get result and release in scope
+  bool have_inet;
+  // use lambda to get result and release reference in scope
   if (
     [&have_inet, mgr]
     {
-      auto res = mgr->get_IsConnectedToInternet(&have_inet);
+      // get status and value
+      VARIANT_BOOL res;
+      auto err = mgr->get_IsConnectedToInternet(&res);
+      // release reference, convert to bool, check
       mgr->Release();
-      return FAILED(res);
+      have_inet = (res == VARIANT_TRUE);
+      return FAILED(err);
     }()
   ) {
     std::cerr << "Error: get_IsConnectedToInternet failed: HRESULT " <<
       std::hex << HRESULT_FROM_WIN32(GetLastError()) << std::endl;
     return EXIT_FAILURE;
   }
-  // check if connected + print
-  std::cout << "Internet: " <<
-    [have_inet]() -> std::string
-    {
-      return (have_inet == VARIANT_TRUE) ? "Yes" : "No";
-    }() <<
-    std::endl;
-  return EXIT_SUCCESS;
+  // check if connected + print message
+  std::cout << "Internet: " << (have_inet ? "Yes" : "No") << std::endl;
+  return have_inet ? EXIT_SUCCESS : EXIT_FAILURE;
 }
