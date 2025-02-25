@@ -39,7 +39,7 @@ string(APPEND usage "  -r, --required    Specify if libcurl search must succeed\
 string(APPEND usage "  -c COMPONENTS, --components COMPONENTS\n")
 string(
     APPEND usage
-    "                    Optional semicolon-separated libcurl components to\n"
+    "                    Optional comma-separated libcurl components to\n"
     "                    search for as one would use with FindCURL"
 )
 
@@ -140,9 +140,14 @@ macro(parse_args)
             if(_i GREATER_EQUAL CMAKE_ARGC)
                 message(FATAL_ERROR "-c, --components missing required arguments")
             endif()
+            # convert into a list
+            set(_components "${CMAKE_ARGV${_i}}")
+            string(REPLACE "," ";" _components "${_components}")
             # add the components list
-            list(APPEND arg_list "COMPONENTS" ${CMAKE_ARGV${_i}})
-            set(components_added TRUE)  # indicator
+            list(APPEND arg_list "COMPONENTS" ${_components})
+            # set indiicator and unset unused
+            set(components_added TRUE)
+            unset(_components)
         endif()
     endforeach()
     # if module is not included, error
