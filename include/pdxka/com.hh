@@ -13,50 +13,22 @@
 #endif  // WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <errhandlingapi.h>
+#include <oaidl.h>    // IDispatch
 #include <objbase.h>
+#include <netlistmgr.h>
+#include <Unknwn.h>   // IUnknown
 
 #include <ios>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #ifndef PDXKA_COM_HH_
 #define PDXKA_COM_HH_
 
 namespace pdxka {
-
-/**
- * Traits class to indicate a type is a COM interface inheriting `IUnknown`.
- *
- * @tparam T type
- */
-template <typename T>
-struct is_com_unknown : std::bool_constant<std::is_base_of_v<IUnknown, T>> {};
-
-/**
- * Indicate that a type is a COM interface inheriting `IUnknown`.
- *
- * @tparam T type
- */
-template <typename T>
-constexpr bool is_com_unknown_v = is_com_unknown<T>::value;
-
-/**
- * Traits class to indicate a type is a COM interface inheriting `IDispatch`.
- *
- * @tparam T type
- */
-template <typename T>
-struct is_com_dispatch : std::bool_constant<std::is_base_of_v<IDispatch, T>> {};
-
-/**
- * Indicate that a type is a COM interface inheriting `IDispatch`.
- *
- * @tparam T type
- */
-template <typename T>
-constexpr bool is_com_dispatch_v = is_com_dispatch<T>::value;
 
 namespace detail {
 
@@ -155,6 +127,204 @@ public:
   ~coinit_context()
   {
     CoUninitialize();
+  }
+};
+
+/**
+ * Traits class to indicate a type is a COM interface inheriting `IUnknown`.
+ *
+ * @tparam T type
+ */
+template <typename T>
+struct is_com_unknown : std::bool_constant<std::is_base_of_v<IUnknown, T>> {};
+
+/**
+ * Indicate that a type is a COM interface inheriting `IUnknown`.
+ *
+ * @tparam T type
+ */
+template <typename T>
+constexpr bool is_com_unknown_v = is_com_unknown<T>::value;
+
+/**
+ * Traits class to indicate a type is a COM interface inheriting `IDispatch`.
+ *
+ * @tparam T type
+ */
+template <typename T>
+struct is_com_dispatch : std::bool_constant<std::is_base_of_v<IDispatch, T>> {};
+
+/**
+ * Indicate that a type is a COM interface inheriting `IDispatch`.
+ *
+ * @tparam T type
+ */
+template <typename T>
+constexpr bool is_com_dispatch_v = is_com_dispatch<T>::value;
+
+/**
+ * COM object traits type.
+ *
+ * This is used to determine the `CLSID` and `IID` of the COM object. A valid
+ * specialization should contain the `clsid` and `iid` static constexpr members
+ * which are simply const references to the `CLSID` and `IID`.
+ *
+ * @tparam T `IUnknown` subclass
+ */
+template <typename T>
+struct com_traits {};
+
+/**
+ * Specialization for the `INetworkListManager`.
+ */
+template <>
+struct com_traits<INetworkListManager> {
+  static constexpr const auto& clsid = CLSID_NetworkListManager;
+  static constexpr const auto& iid = IID_INetworkListManager;
+};
+
+/**
+ * COM object pointer class.
+ *
+ * This provides a natural shared pointer-like functionality using the existing
+ * reference-counting functionality of COM objects.
+ *
+ * @tparam T COM interface class type, e.g. `INetworkListManager`
+ */
+template <typename T>
+class com_ptr {
+public:
+  // requires that the com_traits<T> specialization members exist
+  static_assert(is_com_unknown_v<T>, "must be a COM interface");
+  using value_type = T;
+
+  /**
+   * Ctor.
+   *
+   * Creates a COM object on the local system with `CoCreateInstance`.
+   *
+   *
+   *
+   * @param outer The parent `IUnknown` or `nullptr` if not part of aggregate
+   * @param ctx Execution context to run the COM object in, e.g. `CLSCTX_ALL`
+   */
+  com_ptr(LPUNKNOWN outer, CLSCTX ctx)
+  {
+    if (
+      FAILED(
+        CoCreateInstance(
+          CLSID_NetworkListManager,
+          nullptr,
+          CLSCTX_ALL,
+          IID_INetworkListManager,
+          (LPVOID*) &mgr
+        )
+      )
+    ) {
+      std::cerr << "Error: Failed to create INetworkListManager: HRESULT " <<
+        std::hex << HRESULT_FROM_WIN32(GetLastError()) << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
+  /**
+   * Copy ctor.
+   *
+   * This increments the reference count of the underlying COM object.
+   */
+  com_ptr(const com_ptr& other) noexcept
+  {
+    from(other);
+  }
+
+  /**
+   * Move ctor.
+   *
+   * This transfers ownership without incrementing the reference count.
+   */
+  com_ptr(com_ptr&& other) noexcept
+  {
+    from(std::move(other));
+  }
+
+  /**
+   * Copy assignment operator.
+   */
+  auto& operator=(const com_ptr& other) noexcept
+  {
+    destroy();
+    from(other);
+    return *this;
+  }
+
+  /**
+   * Move asignment operator.
+   */
+  auto& operator=(com_ptr&& other) noexcept
+  {
+    destroy();
+    from(std::move(other));
+    return *this;
+  }
+
+  /**
+   * Dtor.
+   *
+   * Decrements the reference count on the COM object if one is owned.
+   */
+  ~com_ptr()
+  {
+    destroy();
+  }
+
+  /**
+   * Return the raw COM interface pointer.
+   */
+  auto ptr() const noexcept { return ptr_; }
+
+  /**
+   * Access an underlying member of the COM object pointer.
+   *
+   * @warning Calling `AddRef` or `Release` using `operator->` introduces the
+   *  risk of reference leaking and double delete respectively.
+   */
+  auto operator->() const noexcept
+  {
+    return ptr_;
+  }
+
+private:
+  T* ptr_{};
+
+  /**
+   * Implement copy from another `com_ptr`.
+   *
+   * The COM object pointer is copied and its reference count incremented.
+   */
+  void from(const com_ptr& other) noexcept
+  {
+    ptr_ = other.ptr_;
+    ptr_->AddRef();
+  }
+
+  /**
+   * Implement move from another `com_ptr`.
+   *
+   * The COM object pointer is copied and then set to `nullptr` for `other`.
+   */
+  void from(com_ptr&& other) noexcept
+  {
+    ptr_ = other.ptr_;
+    other.ptr_ = nullptr;
+  }
+
+  /**
+   * Decrements the reference count of the COM object is one is owned.
+   */
+  void destroy() noexcept
+  {
+    if (ptr_)
+      ptr_->Release();
   }
 };
 
