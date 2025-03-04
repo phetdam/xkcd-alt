@@ -18,15 +18,18 @@ target_link_libraries(
 if(PDXKA_IS_MULTI_CONFIG)
     add_dependencies(pdxka_test pdxka_testing_path_hh)
 endif()
-# on Windows we need to define NOMINMAX since the Windows min() and max()
-# macros are somehow leaking in testing/program_main.hh
-# note: can get rid of the _WIN32_WINNT not being defined Boost.Asio warning by
-# compiling with /DBOOST_USE_WINDOWS_H and /DWIN32_LEAN_AND_MEAN (latter is
-# required is avoid including Windows Sockets 1 in Boost.Asio header), but this
-# seems like a pretty heavy workaround (including Windows.h). the other option
-# is to use /DWIN32_WINNT=0x0601 (_WIN32_WINNT_WIN7 in sdkddkver.h) but it
-# doesn't seem great to make this a project-wide define either.
+# Windows-specific settings for pdxka_test
 if(WIN32)
+    # com.hh tests included
+    target_sources(pdxka_test PRIVATE com_test.cc)
+    # on Windows we need to define NOMINMAX since the Windows min() and max()
+    # macros are somehow leaking in testing/program_main.hh
+    # note: can get rid of the _WIN32_WINNT not defined Boost.Asio warning by
+    # compiling with /DBOOST_USE_WINDOWS_H and /DWIN32_LEAN_AND_MEAN (latter is
+    # required is avoid including Windows Sockets 1 in Boost.Asio header), but
+    # this seems like a pretty heavy workaround (including Windows.h). other
+    # option is to use /DWIN32_WINNT=0x0601 (_WIN32_WINNT_WIN7 in sdkddkver.h)
+    # but it doesn't seem great to make this a project-wide define either.
     target_compile_definitions(
         pdxka_test PRIVATE
         NOMINMAX BOOST_USE_WINDOWS_H WIN32_LEAN_AND_MEAN
