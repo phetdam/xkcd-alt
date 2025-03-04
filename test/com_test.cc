@@ -11,6 +11,7 @@
 #include <IMessageDispatcher.h>
 #include <netlistmgr.h>
 #include <servprov.h>
+#include <Unknwn.h>  // IUnknown
 
 #include <ios>
 #include <string>
