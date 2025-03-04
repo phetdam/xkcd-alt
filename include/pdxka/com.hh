@@ -13,6 +13,7 @@
 #endif  // WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <errhandlingapi.h>
+#include <combaseapi.h>
 #include <oaidl.h>    // IDispatch
 #include <objbase.h>
 #include <netlistmgr.h>
@@ -199,32 +200,33 @@ public:
   using value_type = T;
 
   /**
+   * Default ctor.
+   *
+   * Create a COM object on the local system with no parent for all contexts.
+   */
+  com_ptr() : com_ptr{nullptr, CLSCTX_ALL} {}
+
+  /**
    * Ctor.
    *
-   * Creates a COM object on the local system with `CoCreateInstance`.
+   * Create a COM object on the local system with the given parent and context.
    *
-   *
+   * @note This uses `CoCreateInstance` so is less efficient for bulk creation.
    *
    * @param outer The parent `IUnknown` or `nullptr` if not part of aggregate
    * @param ctx Execution context to run the COM object in, e.g. `CLSCTX_ALL`
    */
-  com_ptr(LPUNKNOWN outer, CLSCTX ctx)
+  com_ptr(LPUNKNOWN outer, DWORD ctx)
   {
-    if (
-      FAILED(
-        CoCreateInstance(
-          CLSID_NetworkListManager,
-          nullptr,
-          CLSCTX_ALL,
-          IID_INetworkListManager,
-          (LPVOID*) &mgr
-        )
-      )
-    ) {
-      std::cerr << "Error: Failed to create INetworkListManager: HRESULT " <<
-        std::hex << HRESULT_FROM_WIN32(GetLastError()) << std::endl;
-      return EXIT_FAILURE;
-    }
+    // CLSID and IID to use
+    const auto& clsid = com_traits<T>::clsid;
+    const auto& iid = com_traits<T>::iid;
+    // create object
+    LPVOID obj;
+    if (FAILED(CoCreateInstance(clsid, outer, ctx, iid, &obj)))
+      throw com_error{"Failed to create COM object instance"};
+    // on success, set pointer
+    ptr_ = static_cast<T*>(obj);
   }
 
   /**

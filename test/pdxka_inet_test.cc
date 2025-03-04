@@ -38,22 +38,7 @@ int main()
   // single-threaded COM initialization
   pdxka::coinit_context com{COINIT_APARTMENTTHREADED};
   // create network list manager instance
-  INetworkListManager* mgr;
-  if (
-    FAILED(
-      CoCreateInstance(
-        CLSID_NetworkListManager,
-        nullptr,
-        CLSCTX_ALL,
-        IID_INetworkListManager,
-        (LPVOID*) &mgr
-      )
-    )
-  ) {
-    std::cerr << "Error: Failed to create INetworkListManager: HRESULT " <<
-      std::hex << HRESULT_FROM_WIN32(GetLastError()) << std::endl;
-    return EXIT_FAILURE;
-  }
+  pdxka::com_ptr<INetworkListManager> mgr;
   // check if we have connection to Internet
   bool have_inet;
   // use lambda to get result and release reference in scope
@@ -63,8 +48,7 @@ int main()
       // get status and value
       VARIANT_BOOL res;
       auto err = mgr->get_IsConnectedToInternet(&res);
-      // release reference, convert to bool, check
-      mgr->Release();
+      // convert to bool + check status
       have_inet = (res == VARIANT_TRUE);
       return FAILED(err);
     }()
