@@ -12,7 +12,6 @@
 #define WIN32_LEAN_AND_MEAN
 #endif  // WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <errhandlingapi.h>
 #include <combaseapi.h>
 #include <oaidl.h>    // IDispatch
 #include <objbase.h>
@@ -63,22 +62,19 @@ public:
    * @param err `HRESULT` status
    * @param text User-defined message text
    */
+  com_error(HRESULT err) : com_error{err, "COM error"} {}
+
+  /**
+   * Ctor.
+   *
+   * @param err `HRESULT` status
+   * @param text User-defined message text
+   */
   com_error(HRESULT err, const std::string& text)
     : std::runtime_error{
         "Error: " + text + ". HRESULT: " + detail::to_hex_string(err)
       },
       err_{err}
-  {}
-
-  /**
-   * Ctor.
-   *
-   * This ctor uses `HRESULT_FROM_WIN32(GetLastError())` to retrieve the error.
-   *
-   * @param text User-defined message text
-   */
-  com_error(const std::string& text)
-    : com_error{HRESULT_FROM_WIN32(GetLastError()), text}
   {}
 
   /**
@@ -116,8 +112,9 @@ public:
     // CoInitializeEx(nullptr, opts) |
     //   except | [](auto) { throw com_error{"COM initialization failed"}; };
     //
-    if (FAILED(CoInitializeEx(nullptr, opts)))
-      throw com_error{"COM initialization failed"};
+    auto hres = CoInitializeEx(nullptr, opts);
+    if (FAILED(hres))
+      throw com_error{hres, "COM initialization failed"};
   }
 
   /**
@@ -223,8 +220,9 @@ public:
     const auto& iid = com_traits<T>::iid;
     // create object
     LPVOID obj;
-    if (FAILED(CoCreateInstance(clsid, outer, ctx, iid, &obj)))
-      throw com_error{"Failed to create COM object instance"};
+    auto hres = CoCreateInstance(clsid, outer, ctx, iid, &obj);
+    if (FAILED(hres))
+      throw com_error{hres, "Failed to create COM object instance"};
     // on success, set pointer
     ptr_ = static_cast<T*>(obj);
   }
@@ -291,6 +289,14 @@ public:
    *  risk of reference leaking and double delete respectively.
    */
   auto operator->() const noexcept
+  {
+    return ptr_;
+  }
+
+  /**
+   * Implicitly convert to the raw COM interface pointer.
+   */
+  operator T*() const noexcept
   {
     return ptr_;
   }

@@ -54,6 +54,9 @@ if(WIN32)
     # this? seems like part of the build is not getting triggered
     #
     # target_compile_options(pdxka_test PRIVATE /permissive-)
+    # com_test.cc uses IWICImagingFactory and WindowsCodecs is needed for the
+    # definition of the extern IID_IWICImagingFactory
+    target_link_libraries(pdxka_test PRIVATE ole32 WindowsCodecs)
     # copy dependent DLLs to output directory
     pdxka_copy_runtime_dlls(pdxka_test)
 endif()

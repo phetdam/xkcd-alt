@@ -7,38 +7,62 @@
 
 #include "pdxka/com.hh"
 
-#include <errhandlingapi.h>
 #include <IMessageDispatcher.h>
 #include <netlistmgr.h>
 #include <servprov.h>
 #include <Unknwn.h>  // IUnknown
+#include <wincodec.h>
 
 #include <ios>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <typeinfo>  // for well-formed typeid usage
+#include <utility>
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(com_test)
+namespace utf = boost::unit_test;
+
+// local com_traits specializations
+namespace pdxka {
+
+template <>
+struct com_traits<IWICImagingFactory> {
+  static constexpr const auto& clsid = CLSID_WICImagingFactory;
+  static constexpr const auto& iid = IID_IWICImagingFactory;
+};
+
+}  // namespace pdxka
+
+namespace {
+
+/**
+ * Fixture to ensure that COM is initialized for this thread.
+ */
+struct com_init_fixture {
+private:
+  pdxka::coinit_context ctx_;
+};
+
+}  // namespace
+
+BOOST_AUTO_TEST_SUITE(com_test, * utf::fixture<com_init_fixture>())
 
 /**
  * Check that `com_error` works as expected.
  */
 BOOST_AUTO_TEST_CASE(com_error_test)
 {
-  // Win32 system error to set + expected and actual HRESULTs
-  constexpr DWORD exp_err = ERROR_TOO_MANY_OPEN_FILES;
+  using pdxka::com_error;
+  // expected and actual HRESULTs
   // note: HRESULT_FROM_WIN32 was formerly a macro
-  HRESULT exp_hres = HRESULT_FROM_WIN32(exp_err);
+  const HRESULT exp_hres = E_NOINTERFACE;
   HRESULT act_hres = S_OK;
   try {
-    // set the per-thread error indicator with something
-    SetLastError(exp_err);
-    throw pdxka::com_error{"too many open files"};
+    throw com_error{exp_hres};
   }
-  catch (const pdxka::com_error& exc) {
+  catch (const com_error& exc) {
     act_hres = exc.error();
   }
   // value should have changed
@@ -118,6 +142,76 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(is_com_dispatch_test, T, is_com_dispatch_test_inpu
     "is_com_dispatch_v<" << boost::core::demangle(typeid(input_type).name()) <<
       "> is " << std::boolalpha << actual << " != expected " << expected
   );
+}
+
+/**
+ * Type wrapper object.
+ *
+ * This holds any type, even incomplete, in a regular type wrapper. In
+ * particular, this type is helpful with `BOOST_AUTO_TEST_CASE_TEMPLATE` as
+ * incomplete types in the input tuple will result in a compile error.
+ *
+ * @tparam T type
+ */
+template <typename T>
+struct type_wrapper {
+  using type = T;
+};
+
+// IUnknown types for com_ptr semantic tests
+using com_ptr_sem_test_inputs = std::tuple<
+  type_wrapper<INetworkListManager>,
+  type_wrapper<IWICImagingFactory>
+>;
+
+/**
+ * Test that `com_ptr` copy works correctly.
+ */
+BOOST_AUTO_TEST_CASE_TEMPLATE(com_ptr_copy_test, T, com_ptr_sem_test_inputs)
+{
+  pdxka::com_ptr<typename T::type> o1;
+  // copy + test
+  auto o2 = o1;
+  BOOST_TEST(o1);
+  BOOST_TEST(o2);
+  BOOST_TEST(o1 == o2);  // should have same data pointer
+}
+
+/**
+ * Test that `com_ptr` move works correctly.
+ */
+BOOST_AUTO_TEST_CASE_TEMPLATE(com_ptr_move_test, T, com_ptr_sem_test_inputs)
+{
+  pdxka::com_ptr<typename T::type> o1;
+  // move + test
+  auto o2 = std::move(o1);
+  BOOST_TEST(!o1);
+  BOOST_TEST(o2);
+}
+
+/**
+ * Test that `com_ptr` copy assignment works correctly.
+ */
+BOOST_AUTO_TEST_CASE_TEMPLATE(com_ptr_copy_assign_test, T, com_ptr_sem_test_inputs)
+{
+  pdxka::com_ptr<typename T::type> o1, o2;
+  // copy assign + test
+  o2 = o1;
+  BOOST_TEST(o1);
+  BOOST_TEST(o2);
+  BOOST_TEST(o1 == o2);
+}
+
+/**
+ * Test that `com_ptr` move assignment works correctly.
+ */
+BOOST_AUTO_TEST_CASE_TEMPLATE(com_ptr_move_assign_test, T, com_ptr_sem_test_inputs)
+{
+  pdxka::com_ptr<typename T::type> o1, o2;
+  // move assign + test
+  o2 = std::move(o1);
+  BOOST_TEST(!o1);
+  BOOST_TEST(o2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()  // com_test
