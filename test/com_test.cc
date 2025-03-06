@@ -41,6 +41,8 @@ BOOST_AUTO_TEST_CASE(com_error_test)
   catch (const pdxka::com_error& exc) {
     act_hres = exc.error();
   }
+  // value should have changed
+  BOOST_TEST_REQUIRE(act_hres != S_OK);
   // system errors must be the same
   BOOST_TEST(exp_hres == act_hres);
 }
