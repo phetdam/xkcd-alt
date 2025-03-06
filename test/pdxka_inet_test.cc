@@ -33,31 +33,28 @@
  * @todo Add some more COM abstraction and write a nicer program for POSIX.
  */
 
+/**
+ * Indicate whether or not the local machine is connected to Internet.
+ */
+bool has_inet_connection(INetworkListManager& mgr)
+{
+  // get status and value
+  VARIANT_BOOL res;
+  auto hres = mgr.get_IsConnectedToInternet(&res);
+  if (FAILED(hres))
+    throw pdxka::com_error{hres, "get_IsConnectedToInternet failed"};
+  // convert to actual bool
+  return res == VARIANT_TRUE;
+}
+
 int main()
 {
   // single-threaded COM initialization
   pdxka::coinit_context com{COINIT_APARTMENTTHREADED};
   // create network list manager instance
   pdxka::com_ptr<INetworkListManager> mgr;
-  // check if we have connection to Internet
-  bool have_inet;
-  // use lambda to get result and release reference in scope
-  if (
-    [&have_inet, mgr]
-    {
-      // get status and value
-      VARIANT_BOOL res;
-      auto err = mgr->get_IsConnectedToInternet(&res);
-      // convert to bool + check status
-      have_inet = (res == VARIANT_TRUE);
-      return FAILED(err);
-    }()
-  ) {
-    std::cerr << "Error: get_IsConnectedToInternet failed: HRESULT " <<
-      std::hex << HRESULT_FROM_WIN32(GetLastError()) << std::endl;
-    return EXIT_FAILURE;
-  }
   // check if connected + print message
+  auto have_inet = has_inet_connection(*mgr);
   std::cout << "Internet: " << (have_inet ? "Yes" : "No") << std::endl;
   return have_inet ? EXIT_SUCCESS : EXIT_FAILURE;
 }
