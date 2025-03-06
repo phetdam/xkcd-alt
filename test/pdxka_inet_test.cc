@@ -33,6 +33,8 @@
  * @todo Add some more COM abstraction and write a nicer program for POSIX.
  */
 
+namespace {
+
 /**
  * Indicate whether or not the local machine is connected to Internet.
  */
@@ -46,6 +48,8 @@ bool has_inet_connection(INetworkListManager& mgr)
   // convert to actual bool
   return res == VARIANT_TRUE;
 }
+
+}  // namespace
 
 int main()
 {
