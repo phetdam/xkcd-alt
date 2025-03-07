@@ -147,3 +147,13 @@ a quick bullet list of some arcane CMake scripting tasks:
 * `version.h` header file generation support for multi-config generators to
   run `configure_file` as a *pre-build* per-config generation step so each
   build config gets its own `version.h` generated header
+* `pdxka_live_test.cmake` to implement CTest tests involving xkcd-alt making
+  real network connections that can mark themselves as skipped if there are no
+  running IPv4 or IPv6 network interfaces available
+
+For the last bullet, this CMake script calls a program, `pdxka_inet_test`, to
+perform the determination that the local machine is connected to the Internet.
+On Windows the COM
+[`INetworkListManager`](https://learn.microsoft.com/en-us/windows/win32/api/netlistmgr/nn-netlistmgr-inetworklistmanager)
+is used, while for POSIX systems [getifaddrs](https://man7.org/linux/man-pages/man3/getifaddrs.3.html)
+is used. Both implementations are wrapped in nice RAII C++ interfaces.
