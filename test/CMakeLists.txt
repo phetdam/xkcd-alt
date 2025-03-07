@@ -68,9 +68,8 @@ pdxka_boost_discover_tests(pdxka_test)
 # this is used by pdxka_live_test.cmake to skip live xkcd-alt tests if there is
 # no Internet connection. we cannot use test fixtures because if a fixture test
 # is skipped, the dependent tests will still get fired off.
-# TODO: make cross-platform
+add_executable(pdxka_inet_test pdxka_inet_test.cc)
 if(WIN32)
-    add_executable(pdxka_inet_test pdxka_inet_test.cc)
     target_link_libraries(pdxka_inet_test PRIVATE ole32)
 endif()
 
