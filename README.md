@@ -155,5 +155,5 @@ For the last bullet, this CMake script calls a program, `pdxka_inet_test`, to
 perform the determination that the local machine is connected to the Internet.
 On Windows the COM
 [`INetworkListManager`](https://learn.microsoft.com/en-us/windows/win32/api/netlistmgr/nn-netlistmgr-inetworklistmanager)
-is used, while for POSIX systems [getifaddrs](https://man7.org/linux/man-pages/man3/getifaddrs.3.html)
+is used, while for POSIX systems [`getifaddrs`](https://man7.org/linux/man-pages/man3/getifaddrs.3.html)
 is used. Both implementations are wrapped in nice RAII C++ interfaces.
