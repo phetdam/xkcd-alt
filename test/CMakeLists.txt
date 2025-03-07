@@ -191,7 +191,7 @@ add_test(
 set_tests_properties(
     ${_prog}_cmake_config_test PROPERTIES
     FIXTURES_SETUP test_cmake_config
-    FIXTURES_REQUIRED "test_install;tset_cmake_usage_clean"
+    FIXTURES_REQUIRED "test_install;test_cmake_usage_clean"
 )
 
 unset(_prog)
