@@ -15,8 +15,7 @@
 
 #include "pdxka/warnings.h"
 
-// libpdxka library tests
-BOOST_AUTO_TEST_SUITE(libpdxka)
+BOOST_AUTO_TEST_SUITE(curl_test)
 
 /**
  * Test that `PDXKA_CURL_ERR_HANDLER` works properly.
@@ -64,7 +63,7 @@ BOOST_AUTO_TEST_CASE(curl_handle_move_ctor_test)
   pdxka::curl_handle h1;
   auto h1h = h1.handle();
   // perform move construct
-  pdxka::curl_handle h2{std::move(h1)};
+  auto h2 = std::move(h1);
   // h1 should be nullptr, h2 should acquire h1's handle
   BOOST_TEST_REQUIRE(!h1, "move from h1 failed");
   BOOST_TEST_REQUIRE(h2 == h1h, "move to h2 failed");
@@ -86,4 +85,4 @@ BOOST_AUTO_TEST_CASE(curl_handle_move_asgn_test)
   BOOST_TEST_REQUIRE(h2 == h1h, "move to h2 failed");
 }
 
-BOOST_AUTO_TEST_SUITE_END()  // libpdxka
+BOOST_AUTO_TEST_SUITE_END()  // curl_test
