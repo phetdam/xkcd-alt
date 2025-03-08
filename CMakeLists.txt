@@ -251,21 +251,13 @@ endif()
 
 # generate features.h from features.h.in with any configured features. we
 # ensure that the generated header has the same LF line endings as source
-# TODO: write features.h to build directories so Windows/Linux builds don't
-# interfere with each other. will need ${CMAKE_CURRENT_BINARY_DIR}/include to
-# be on the list of include directories unconditionally
-set(PDXKA_FEATURES_HEADER ${PDXKA_INCLUDE}/pdxka/features.h)
+set(PDXKA_FEATURES_HEADER pdxka/features.h)
 configure_file(
-    ${PDXKA_FEATURES_HEADER}.in ${PDXKA_FEATURES_HEADER}
+    "include/${PDXKA_FEATURES_HEADER}.in"
+    "include/${PDXKA_FEATURES_HEADER}"
     @ONLY NEWLINE_STYLE LF
 )
-# note: cmake_path available in CMake 3.20
-cmake_path(
-    RELATIVE_PATH PDXKA_FEATURES_HEADER
-    BASE_DIRECTORY ${PDXKA_INCLUDE}
-    OUTPUT_VARIABLE PDXKA_FEATURES_HEADER_RELATIVE
-)
-message(STATUS "Generated ${PDXKA_FEATURES_HEADER_RELATIVE}")
+message(STATUS "Generated ${PDXKA_FEATURES_HEADER}")
 
 # generate version.h from version.h.in with project version/build info
 set(PDXKA_VERSION_HEADER pdxka/version.h)
