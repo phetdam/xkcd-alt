@@ -38,11 +38,22 @@ set_tests_properties(
 # -V, --version tests
 add_test(NAME ${_prog}_V COMMAND ${_prog} -V)  # note capital "V"
 add_test(NAME ${_prog}_version COMMAND ${_prog} --version)
+# should correctly indicate the libcurl and Boost versions + Boost components
+set(
+    _version_regex
+    "libcurl/${CURL_VERSION_STRING} libboost/${Boost_VERSION_STRING} \\(headers"
+)
+if(PDXKA_USE_BOOST_PO_CLI)
+    string(APPEND _version_regex " program_options\\)")
+else()
+    string(APPEND _version_regex "\\)")
+endif()
 set_tests_properties(
     ${_prog}_V ${_prog}_version PROPERTIES
     PASS_REGULAR_EXPRESSION
-    "libcurl/${CURL_VERSION_STRING} libboost/${Boost_VERSION_STRING}"
+    "${_version_regex}"
 )
+unset(_version_regex)
 # if -h, --help or -V, --version tests actually get RSS, error
 set_tests_properties(
     ${_prog}_h
