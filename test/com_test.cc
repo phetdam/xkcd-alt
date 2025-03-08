@@ -7,6 +7,7 @@
 
 #include "pdxka/com.hh"
 
+#include <ComSvcs.h>
 #include <IMessageDispatcher.h>
 #include <netlistmgr.h>
 #include <servprov.h>
@@ -23,17 +24,6 @@
 #include <boost/test/unit_test.hpp>
 
 namespace utf = boost::unit_test;
-
-// local com_traits specializations
-namespace pdxka {
-
-template <>
-struct com_traits<IWICImagingFactory> {
-  static constexpr const auto& clsid = CLSID_WICImagingFactory;
-  static constexpr const auto& iid = IID_IWICImagingFactory;
-};
-
-}  // namespace pdxka
 
 namespace {
 
@@ -96,7 +86,10 @@ using is_com_unknown_test_inputs = std::tuple<
   traits_test_input<int, std::false_type>,
   traits_test_input<IServiceProvider, std::true_type>,
   traits_test_input<INetworkListManager, std::true_type>,
-  traits_test_input<std::string, std::false_type>
+  traits_test_input<std::string, std::false_type>,
+  traits_test_input<ISecurityCallContext, std::true_type>,
+  traits_test_input<ISharedProperty, std::true_type>,
+  traits_test_input<IWICImagingFactory, std::true_type>
 >;
 
 /**
@@ -123,7 +116,9 @@ using is_com_dispatch_test_inputs = std::tuple<
   traits_test_input<std::string, std::false_type>,
   traits_test_input<INetworkListManager, std::true_type>,
   traits_test_input<IMessageDispatcher, std::false_type>,
-  traits_test_input<IServiceProvider, std::false_type>
+  traits_test_input<IServiceProvider, std::false_type>,
+  traits_test_input<ITransactionContext, std::true_type>,
+  traits_test_input<IWICImagingFactory, std::false_type>
 >;
 
 /**
@@ -159,9 +154,11 @@ struct type_wrapper {
 };
 
 // IUnknown types for com_ptr semantic tests
+// note: these COM classes should be registered for most systems
 using com_ptr_sem_test_inputs = std::tuple<
   type_wrapper<INetworkListManager>,
-  type_wrapper<IWICImagingFactory>
+  type_wrapper<IWICImagingFactory>,
+  type_wrapper<ITransactionContext>
 >;
 
 /**
