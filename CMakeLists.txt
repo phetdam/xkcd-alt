@@ -240,14 +240,13 @@ include_directories(
     SYSTEM ${Boost_INCLUDE_DIRS}
     SYSTEM ${CURL_INCLUDE_DIRS}
 )
-# for multi-config generators use binary dir generator expression as the
+# for multi-config generators use binary dir generator expression as some
 # generated files will go in the per-config subdirectories
 if(PDXKA_IS_MULTI_CONFIG)
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/include)
-# for single-config generator generated files are from binary dir
-else()
-    include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 endif()
+# both single- and multi-config generator generated files can be in binary dir
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # generate features.h from features.h.in with any configured features. we
 # ensure that the generated header has the same LF line endings as source
