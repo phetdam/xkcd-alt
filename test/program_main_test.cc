@@ -1,7 +1,7 @@
 /**
  * @file program_main_test.cc
  * @author Derek Huang
- * @brief C++ unit tests for program_main.hh
+ * @brief program_main.hh unit tests
  * @copyright MIT License
  */
 
@@ -54,8 +54,7 @@ pdxka::curl_result mock_rss_get(const pdxka::cliopts& /*opts*/)
 
 }  // namespace
 
-// XKCD alt text program tests
-BOOST_AUTO_TEST_SUITE(xkcd_alt)
+BOOST_AUTO_TEST_SUITE(program_main_test)
 
 namespace {
 
@@ -325,4 +324,4 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(mock_program_main, T, argv_type_tuple)
     );
 }
 
-BOOST_AUTO_TEST_SUITE_END()  // xkcd_alt
+BOOST_AUTO_TEST_SUITE_END()  // program_main_test
