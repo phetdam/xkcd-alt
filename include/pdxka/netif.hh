@@ -155,7 +155,7 @@ public:
   /**
    * Move assignment operator.
    */
-  auto& operator=(netifaddrs_list& other) noexcept
+  auto& operator=(netifaddrs_list&& other) noexcept
   {
     free();
     move(std::move(other));
