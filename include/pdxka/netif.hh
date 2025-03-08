@@ -11,6 +11,8 @@
 #include <ifaddrs.h>
 #include <net/if.h>  // for IFF_UP
 
+#include <cstdint>
+#include <iterator>
 #include <utility>
 
 #include "pdxka/posix.hh"
@@ -38,6 +40,13 @@ public:
    */
   class iterator {
   public:
+    // iterator traits
+    using difference_type = std::ptrdiff_t;
+    using value_type = ifaddrs;
+    using pointer = const ifaddrs*;
+    using reference = const ifaddrs&;
+    using iterator_category = std::forward_iterator_tag;
+
     /**
      * Default ctor.
      *
@@ -106,7 +115,7 @@ public:
     }
 
     /**
-     * Provide access to the `1faddrs` members.
+     * Provide access to the `ifaddrs` members.
      *
      * @note This is provided to satisfy *LegacyInputIterator*.
      */
