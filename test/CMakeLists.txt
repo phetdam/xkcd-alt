@@ -1,15 +1,12 @@
 cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 
-# unit test runner using Boost.Test
-# TODO: for tests that check the output xkcd-alt it might be better to make
-# them simple CTest tests that we will check the output regex for pass/fail.
-# the version macros checked are known to CMake (since configure_file is used
-# to generate the headers) so testing inside C++ may be unnecessary. see the
-# add_test() commands in ../src where we test xkcd-alt -V, etc.
-add_executable(
-    pdxka_test
-    curl_test.cc features_test.cc main.cc program_main_test.cc version_test.cc
-)
+# pdxka_test: Boost.Test unit test runner
+# note: see src/CMakeLists.txt for CTest tests that use regex patterns to check
+# the output of xkcd-alt. previously, we used Boost.Process to launch xkcd-alt
+# with the -V option to print version info, which we would then capture and
+# then check in C++ to see if the Boost/libcurl version info was correct. the
+# CTest tests provide an easier and more direct way to perform these tests.
+add_executable(pdxka_test curl_test.cc main.cc program_main_test.cc)
 target_link_libraries(
     pdxka_test PRIVATE
     Boost::filesystem Boost::unit_test_framework CURL::libcurl pdxka
