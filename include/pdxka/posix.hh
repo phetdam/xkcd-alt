@@ -33,7 +33,8 @@ public:
    * @param err `errno` status
    */
   posix_error(int err)
-    : std::runtime_error{"Error: " + std::string{std::strerror(err)}}
+    : std::runtime_error{"Error: " + std::string{std::strerror(err)}},
+      err_{err}
   {}
 
   /**
@@ -43,13 +44,22 @@ public:
    * @param message Message
    */
   posix_error(int err, const std::string& message)
-    : std::runtime_error{"Error: " + message + ": " + std::strerror(err)}
+    : std::runtime_error{"Error: " + message + ": " + std::strerror(err)},
+      err_{err}
   {}
 
   /**
    * Return the `errno` value used in the exception.
    */
   auto err() const noexcept { return err_; }
+
+  /**
+   * Return the string message corresponding to the `errno` value.
+   */
+  const char* errmsg() const noexcept
+  {
+    return std::strerror(err_);
+  }
 
 private:
   int err_;

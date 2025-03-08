@@ -56,6 +56,11 @@ if(WIN32)
     target_link_libraries(pdxka_test PRIVATE ole32 WindowsCodecs)
     # copy dependent DLLs to output directory
     pdxka_copy_runtime_dlls(pdxka_test)
+# POSIX-specific setting for pdxka_test
+else()
+    # include posix.hh and netif.hh tests
+    # TODO: add netif.hh tests
+    target_sources(pdxka_test PRIVATE posix_test.cc)
 endif()
 
 # add Boost tests individually
