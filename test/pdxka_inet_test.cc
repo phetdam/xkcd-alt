@@ -22,6 +22,8 @@
 #else
 #include <net/if.h>
 #include <sys/socket.h>
+
+#include <algorithm>
 #endif  // !defined(_WIN32)
 
 #include <cstdlib>
@@ -61,19 +63,21 @@ bool has_inet_connection(INetworkListManager& mgr)
  */
 bool has_inet(const pdxka::netifaddrs_list& netifs) noexcept
 {
-  for (const auto& nif : netifs) {
+  // predicate indicating if a network interface is IP connected
+  auto is_ip = [](const ifaddrs& nif)
+  {
     // address family/socket domain + network device flags
     auto family = nif.ifa_addr->sa_family;
     auto flags = nif.ifa_flags;
-    // if criteria matches, done
-    if (
+    // check criteria
+    return (
       (flags & IFF_UP) &&                        // interface running
       !(flags & IFF_LOOPBACK) &&                 // not a loopback address
       (family == AF_INET || family == AF_INET6)  // IPv4 or IPv6
-    )
-      return true;
-  }
-  return false;
+    );
+  };
+  // check if a network interface is matching
+  return std::find_if(netifs.begin(), netifs.end(), is_ip) != netifs.end();
 }
 #endif  // !defined(_WIN32)
 
