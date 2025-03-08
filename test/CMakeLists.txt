@@ -59,8 +59,7 @@ if(WIN32)
 # POSIX-specific setting for pdxka_test
 else()
     # include posix.hh and netif.hh tests
-    # TODO: add netif.hh tests
-    target_sources(pdxka_test PRIVATE posix_test.cc)
+    target_sources(pdxka_test PRIVATE netif_test.cc posix_test.cc)
 endif()
 
 # add Boost tests individually
