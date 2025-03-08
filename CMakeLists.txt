@@ -139,7 +139,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # so we have to set a normal CMake variable from PDXKA_USE_BOOST_PO_CLI
 set(PDXKA_USE_BOOST_PROGRAM_OPTIONS ${PDXKA_USE_BOOST_PO_CLI})
 # use Boost.ProgramOptions for command-line option parsing. if not defined,
-# then hand-rolled implementation (WIP) is to be used. the goal is to get off
+# then hand-rolled implementation is to be used. the goal is to get off
 # Boost.ProgramOptions so only Boost headers are needed.
 if(PDXKA_USE_BOOST_PROGRAM_OPTIONS)
     message(STATUS "CLI options: Boost")
