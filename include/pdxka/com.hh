@@ -13,10 +13,12 @@
 #endif  // WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <combaseapi.h>
+#include <ComSvcs.h>
 #include <oaidl.h>    // IDispatch
 #include <objbase.h>
 #include <netlistmgr.h>
 #include <Unknwn.h>   // IUnknown
+#include <wincodec.h>
 
 #include <ios>
 #include <sstream>
@@ -179,6 +181,26 @@ template <>
 struct com_traits<INetworkListManager> {
   static constexpr const auto& clsid = CLSID_NetworkListManager;
   static constexpr const auto& iid = IID_INetworkListManager;
+};
+
+/**
+ * Specialization for the `IWICImagingFactory`.
+ *
+ * To use this specialization you must link against `WindowsCodec.lib`.
+ */
+template <>
+struct com_traits<IWICImagingFactory> {
+  static constexpr const auto& clsid = CLSID_WICImagingFactory;
+  static constexpr const auto& iid = IID_IWICImagingFactory;
+};
+
+/**
+ * Specialization for the `ITransactionContext`.
+ */
+template <>
+struct com_traits<ITransactionContext> {
+  static constexpr const auto& clsid = CLSID_TransactionContext;
+  static constexpr const auto& iid = IID_ITransactionContext;
 };
 
 /**
