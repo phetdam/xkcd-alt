@@ -207,7 +207,7 @@ private:
   /**
    * Move from another `netifaddrs_list`.
    *
-   * After completion the moved-from `netifaddrs_list` will have `nullptr` data.
+   * Copies and then sets to `nullptr` the other object's data pointer.
    */
   void move(netifaddrs_list&& other) noexcept
   {
