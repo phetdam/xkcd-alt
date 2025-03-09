@@ -120,6 +120,56 @@ struct is_member_accessible<
 template <typename T>
 constexpr bool is_member_accessible_v = is_member_accessible<T>::value;
 
+/**
+ * Traits to check that a type supports pre-increment.
+ *
+ * @tparam T type
+ */
+template <typename T, typename = void>
+struct is_pre_incrementable : std::false_type {};
+
+/**
+ * True specialization for types that support pre-increment.
+ *
+ * @tparam T type
+ */
+template <typename T>
+struct is_pre_incrementable<T, std::void_t<decltype(++std::declval<T>())> >
+  : std::true_type {};
+
+/**
+ * Indicate that a type is pre-incrementable.
+ *
+ * @tparam T type
+ */
+template <typename T>
+constexpr bool is_pre_incrementable_v = is_pre_incrementable<T>::value;
+
+/**
+ * Traits to check that a type supports post-increment.
+ *
+ * @tparam T type
+ */
+template <typename T, typename = void>
+struct is_post_incrementable : std::false_type {};
+
+/**
+ * True specialization for types that support post-increment.
+ *
+ * @tparam T type
+ */
+template <typename T>
+struct is_post_incrementable<T, std::void_t<decltype(std::declval<T>()++)> >
+  : std::true_type {};
+
+/**
+ * Indicate that a type supports post-increment.
+ *
+ * @tparam T type
+ */
+template <typename T>
+constexpr bool is_post_incrementable_v = is_post_incrementable<T>::value;
+
 }  // namespace pdxka
 
 #endif  // PDXKA_TYPE_TRAITS_HH_

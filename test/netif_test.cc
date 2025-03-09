@@ -102,6 +102,8 @@ using netifsaddrs_iter_traits_inputs = std::tuple<
   pdxka::is_indirectly_readable<pdxka::netifaddrs_list::iterator>,
   pdxka::is_equality_comparable<pdxka::netifaddrs_list::iterator>,
   pdxka::is_inequality_comparable<pdxka::netifaddrs_list::iterator>,
+  pdxka::is_pre_incrementable<pdxka::netifaddrs_list::iterator>,
+  pdxka::is_post_incrementable<pdxka::netifaddrs_list::iterator>,
   pdxka::is_member_accessible<pdxka::netifaddrs_list::iterator>
 >;
 
