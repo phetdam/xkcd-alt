@@ -7,6 +7,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -14,6 +15,23 @@
 #define PDXKA_POSIX_HH_
 
 namespace pdxka {
+
+/**
+ * Get the string error message for the given error code.
+ *
+ * This simply wraps `strerror` and ensures thread-safe invocation. Otherwise,
+ * it has the same semantics as `strerror`, so check `errno` on error.
+ *
+ * @param err `errno` error code
+ */
+inline const char* strerror(int err)
+{
+  // thread-safe initialization under C++11
+  static std::mutex mut;
+  // scope before return
+  std::lock_guard lock{mut};
+  return std::strerror(err);
+}
 
 /**
  * Exception type to indicate a POSIX function has failed and set `errno`.
@@ -33,7 +51,7 @@ public:
    * @param err `errno` status
    */
   posix_error(int err)
-    : std::runtime_error{"Error: " + std::string{std::strerror(err)}},
+    : std::runtime_error{"Error: " + std::string{strerror(err)}},
       err_{err}
   {}
 
@@ -44,7 +62,7 @@ public:
    * @param message Message
    */
   posix_error(int err, const std::string& message)
-    : std::runtime_error{"Error: " + message + ": " + std::strerror(err)},
+    : std::runtime_error{"Error: " + message + ": " + strerror(err)},
       err_{err}
   {}
 
@@ -58,7 +76,7 @@ public:
    */
   const char* errmsg() const noexcept
   {
-    return std::strerror(err_);
+    return strerror(err_);
   }
 
 private:
