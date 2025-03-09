@@ -188,7 +188,7 @@ public:
    */
   iterator end() const noexcept
   {
-    return nullptr;
+    return {};
   }
 
   /**
