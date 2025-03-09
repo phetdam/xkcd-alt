@@ -99,6 +99,10 @@ BOOST_FIXTURE_TEST_CASE(netifaddrs_iter_foreach_test, netifaddrs_fixture_1)
 
 // input traits for the netifaddrs_list::iterator
 using netifsaddrs_iter_traits_inputs = std::tuple<
+  std::is_copy_constructible<pdxka::netifaddrs_list::iterator>,
+  std::is_copy_assignable<pdxka::netifaddrs_list::iterator>,
+  std::is_move_constructible<pdxka::netifaddrs_list::iterator>,
+  std::is_move_assignable<pdxka::netifaddrs_list::iterator>,
   pdxka::is_indirectly_readable<pdxka::netifaddrs_list::iterator>,
   pdxka::is_equality_comparable<pdxka::netifaddrs_list::iterator>,
   pdxka::is_inequality_comparable<pdxka::netifaddrs_list::iterator>,
