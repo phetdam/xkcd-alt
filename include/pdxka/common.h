@@ -14,7 +14,7 @@
  * @param x First argument
  * @param y Second argument
  */
-#define PDXKA_CONCAT_T(x, y) x ## y
+#define PDXKA_CONCAT_I(x, y) x ## y
 
 /**
  * Concatenate arguments with macro expansion.
