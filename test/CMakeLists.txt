@@ -6,7 +6,10 @@ cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 # with the -V option to print version info, which we would then capture and
 # then check in C++ to see if the Boost/libcurl version info was correct. the
 # CTest tests provide an easier and more direct way to perform these tests.
-add_executable(pdxka_test curl_test.cc main.cc program_main_test.cc)
+add_executable(
+    pdxka_test
+    curl_test.cc main.cc program_main_test.cc type_traits_test.cc
+)
 target_link_libraries(
     pdxka_test PRIVATE
     Boost::filesystem Boost::unit_test_framework CURL::libcurl pdxka
