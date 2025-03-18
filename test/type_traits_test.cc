@@ -9,6 +9,7 @@
 
 #include <deque>
 #include <ios>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -128,6 +129,26 @@ public:
   }
 };
 
+/**
+ * Traits test input for `is_member_accessible`.
+ *
+ * @tparam T type
+ * @tparam truth Truth value
+ */
+template <typename T, bool truth>
+using member_accessible_input = traits_input<
+  pdxka::is_member_accessible, T, truth>;
+
+/**
+ * User-defined type whose value can have its members accessed.
+ */
+template <typename T>
+class member_accessible_type : public type_wrapper<T> {
+public:
+  using type_wrapper<T>::type_wrapper;
+  const T* operator->() const noexcept { return &this->obj(); }
+};
+
 }  // namespace
 
 BOOST_AUTO_TEST_SUITE(type_traits_test)
@@ -166,7 +187,16 @@ using traits_test_inputs = std::tuple<
   inequality_comparable_input<inequality_comparable_type<int>, true>,
   // under C++20 rewriting rules, if only T::operator== is available, for !=
   // expressions, operator== overloads are considered
-  inequality_comparable_input<equality_comparable_type<unsigned>, PDXKA_HAS_CXX20>
+  inequality_comparable_input<equality_comparable_type<unsigned>, PDXKA_HAS_CXX20>,
+  // is_member_accessible
+  member_accessible_input<std::unique_ptr<std::string>, true>,
+  // note: operator-> not provided for T[] partial specialization
+  member_accessible_input<std::unique_ptr<double[]>, false>,
+  // but T need not have any accessible members
+  member_accessible_input<std::unique_ptr<double>, true>,
+  member_accessible_input<double, false>,
+  member_accessible_input<std::pair<int, char>, false>,
+  member_accessible_input<member_accessible_type<double>, true>
   // TODO: add more input cases for the other traits types
 >;
 
