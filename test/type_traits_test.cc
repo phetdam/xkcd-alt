@@ -67,7 +67,8 @@ private:
  */
 template <typename T, bool truth>
 using indirectly_readable_input = traits_input<
-  pdxka::is_indirectly_readable, T, truth>;
+  pdxka::is_indirectly_readable, T, truth
+>;
 
 /**
  * User-defined type that is indirectly readable.
@@ -87,7 +88,8 @@ public:
  */
 template <typename T, bool truth>
 using equality_comparable_input = traits_input<
-  pdxka::is_equality_comparable, T, truth>;
+  pdxka::is_equality_comparable, T, truth
+>;
 
 /**
  * User-defined type that is equality comparable.
@@ -111,7 +113,8 @@ public:
  */
 template <typename T, bool truth>
 using inequality_comparable_input = traits_input<
-  pdxka::is_inequality_comparable, T, truth>;
+  pdxka::is_inequality_comparable, T, truth
+>;
 
 /**
  * User-defined type that is inequality comparable.
@@ -137,7 +140,8 @@ public:
  */
 template <typename T, bool truth>
 using member_accessible_input = traits_input<
-  pdxka::is_member_accessible, T, truth>;
+  pdxka::is_member_accessible, T, truth
+>;
 
 /**
  * User-defined type whose value can have its members accessed.
@@ -147,6 +151,48 @@ class member_accessible_type : public type_wrapper<T> {
 public:
   using type_wrapper<T>::type_wrapper;
   const T* operator->() const noexcept { return &this->obj(); }
+};
+
+/**
+ * Traits test input for `is_pre_incrementable`.
+ *
+ * @tparam T type
+ * @tparam truth Truth value
+ */
+template <typename T, bool truth>
+using pre_incrementable_input = traits_input<
+  pdxka::is_pre_incrementable, T, truth
+>;
+
+/**
+ * User-defined pre-incrementable type.
+ */
+template <typename T>
+class pre_incrementable_type : public type_wrapper<T> {
+public:
+  using type_wrapper<T>::type_wrapper;
+  auto& operator++() noexcept { return *this; }
+};
+
+/**
+ * Traits test input for `is_post_incrementable`.
+ *
+ * @tparam T type
+ * @tparam truth Truth value
+ */
+template <typename T, bool truth>
+using post_incrementable_input = traits_input<
+  pdxka::is_post_incrementable, T, truth
+>;
+
+/**
+ * User-defined post-incrementable type.
+ */
+template <typename T>
+class post_incrementable_type : public type_wrapper<T> {
+public:
+  using type_wrapper<T>::type_wrapper;
+  auto operator++(int) const noexcept { return *this; }
 };
 
 }  // namespace
@@ -196,8 +242,20 @@ using traits_test_inputs = std::tuple<
   member_accessible_input<std::unique_ptr<double>, true>,
   member_accessible_input<double, false>,
   member_accessible_input<std::pair<int, char>, false>,
-  member_accessible_input<member_accessible_type<double>, true>
-  // TODO: add more input cases for the other traits types
+  member_accessible_input<member_accessible_type<double>, true>,
+  // is_pre_incrementable
+  pre_incrementable_input<double, true>,
+  pre_incrementable_input<std::deque<unsigned>, false>,
+  pre_incrementable_input<const void*, false>,  // no void* arithmetic allowed
+  pre_incrementable_input<pre_incrementable_type<std::deque<int>>, true>,
+  pre_incrementable_input<pre_incrementable_type<double>, true>,
+  // is_post_incrementable
+  post_incrementable_input<double, true>,
+  post_incrementable_input<std::string, false>,
+  post_incrementable_input<std::deque<int>, false>,
+  post_incrementable_input<post_incrementable_type<int>, true>,
+  post_incrementable_input<post_incrementable_type<void*>, true>,
+  post_incrementable_input<double**, true>
 >;
 
 /**

@@ -131,10 +131,13 @@ struct is_pre_incrementable : std::false_type {};
 /**
  * True specialization for types that support pre-increment.
  *
+ * @note We make use of reference collapsing rules here in the `declval<T>`
+ *  expression. Note that pre-increment requires an lvalue.
+ *
  * @tparam T type
  */
 template <typename T>
-struct is_pre_incrementable<T, std::void_t<decltype(++std::declval<T>())> >
+struct is_pre_incrementable<T, std::void_t<decltype(++std::declval<T&>())> >
   : std::true_type {};
 
 /**
@@ -156,10 +159,12 @@ struct is_post_incrementable : std::false_type {};
 /**
  * True specialization for types that support post-increment.
  *
+ * @note As with pre-increment, post-increment is done on an lvalue.
+ *
  * @tparam T type
  */
 template <typename T>
-struct is_post_incrementable<T, std::void_t<decltype(std::declval<T>()++)> >
+struct is_post_incrementable<T, std::void_t<decltype(std::declval<T&>()++)> >
   : std::true_type {};
 
 /**
