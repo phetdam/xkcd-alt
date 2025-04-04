@@ -349,7 +349,7 @@ private:
   }
 
   /**
-   * Decrements the reference count of the COM object is one is owned.
+   * Decrements the reference count of the COM object if one is owned.
    */
   void destroy() noexcept
   {
