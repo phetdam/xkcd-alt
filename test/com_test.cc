@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(com_error_test)
   using pdxka::com_error;
   // expected and actual HRESULTs
   // note: HRESULT_FROM_WIN32 was formerly a macro
-  const HRESULT exp_hres = E_NOINTERFACE;
+  constexpr HRESULT exp_hres = E_NOINTERFACE;
   HRESULT act_hres = S_OK;
   try {
     throw com_error{exp_hres};
