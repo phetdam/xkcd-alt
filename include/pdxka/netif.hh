@@ -149,7 +149,7 @@ public:
    */
   netifaddrs_list(netifaddrs_list&& other) noexcept
   {
-    move(std::move(other));
+    from(std::move(other));
   }
 
   /**
@@ -158,7 +158,7 @@ public:
   auto& operator=(netifaddrs_list&& other) noexcept
   {
     free();
-    move(std::move(other));
+    from(std::move(other));
     return *this;
   }
 
@@ -205,11 +205,11 @@ private:
   ifaddrs* head_;
 
   /**
-   * Move from another `netifaddrs_list`.
+   * Initialize from another `netifaddrs_list`.
    *
    * Copies and then sets to `nullptr` the other object's data pointer.
    */
-  void move(netifaddrs_list&& other) noexcept
+  void from(netifaddrs_list&& other) noexcept
   {
     head_ = other.head_;
     other.head_ = nullptr;
