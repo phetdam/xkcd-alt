@@ -80,7 +80,7 @@ set_tests_properties(
 function(add_live_xkcd_test)
     # parse arguments
     cmake_parse_arguments(_ARG "" "NAME" "ARGS" ${ARGN})
-    # regsiter test
+    # register test
     add_test(
         NAME ${_ARG_NAME}
         COMMAND ${CMAKE_COMMAND}
