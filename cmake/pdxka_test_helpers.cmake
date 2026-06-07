@@ -43,7 +43,7 @@ function(pdxka_boost_discover_tests target)
             "        WARNING\n"
             "        \"No -C <config> specified for multi-config generator \"\n"
             "\"${CMAKE_GENERATOR}. ${target} tests will not be run.\"\n"
-            ")\n"
+            "    )\n"
             # configuration specified
             "else()\n"
             "    include(\"${ctest_add_test_prefix}-\${CTEST_CONFIGURATION_TYPE}.cmake\")\n"
